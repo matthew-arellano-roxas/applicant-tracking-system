@@ -1,0 +1,21 @@
+model User {
+    id          String  @id @default(cuid())
+    firstName   String
+    lastName    String
+    email       String  @unique
+    phoneNumber String?
+
+    avatarUrl String?
+    role      String
+
+    education String
+
+    createdAt DateTime  @default(now()) @db.Timestamptz(3)
+    updatedAt DateTime? @db.Timestamptz(3)
+
+    authIdentities AuthIdentity?
+    employees      Employee[]
+    jobPosts       JobPost[]
+    applicants     Applicant[]
+    cvs            CV?
+}

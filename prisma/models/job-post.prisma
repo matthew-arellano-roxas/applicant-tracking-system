@@ -1,0 +1,19 @@
+model JobPost {
+    id               String        @id @default(cuid())
+    hiringRequestId  String        @unique // one post per hiring request
+    hiringRequest    HiringRequest @relation(fields: [hiringRequestId], references: [id], onDelete: Cascade)
+    title            String
+    description      String?
+    status           String
+    requirements     Json          @default("{}")
+    employmentType   String // FULL_TIME, PART_TIME, BOTH AVAILABLE
+    applicationCount Int           @default(0)
+    approvedBy       String
+    users            User          @relation(fields: [approvedBy], references: [id])
+    salaryMin        Int?
+    salaryMax        Int?
+    createdAt        DateTime      @default(now()) @db.Timestamptz(3)
+    deletedAt        DateTime?
+
+    applicants Applicant[]
+}

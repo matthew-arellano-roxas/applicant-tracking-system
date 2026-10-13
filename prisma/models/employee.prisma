@@ -1,0 +1,15 @@
+model Employee {
+    id           String   @id @default(cuid())
+    userId       String
+    user        User @relation(fields: [userId], references: [id], onDelete: NoAction)
+    position     String
+    employmentType String // FULL_TIME, PART_TIME
+    isTeaching   Boolean // Indicates if the employee is a teacher
+    hiredAt      DateTime @default(now()) @db.Timestamptz(3)
+
+    departments Department[]
+    departmentMembers DepartmentMember[]
+    employeeDocsStatus EmployeeDocumentStatus?
+    employeeDocs EmployeeDocument?
+    submittedId SubmittedId?
+}

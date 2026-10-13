@@ -1,0 +1,8 @@
+model AuthIdentity {
+    id             String @id @default(cuid())
+    userId         String @unique
+    user           User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+    provider       String 
+    providerUserId String
+    hashPassword   String
+}

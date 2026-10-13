@@ -1,22 +1,22 @@
 services:
-  app:
-    build:
-      context: .
-    ports:
-      - "3000:3000"
-    environment:
-      NODE_ENV: production
-      PORT: 3000
-      DATABASE_URL: postgres://postgres:postgres@postgres:5432/applicant_tracking_system
-      REDIS_CACHE_URL: redis://redis-cache:6379
-      REDIS_QUEUE_URL: redis://redis-queue:6379
-    depends_on:
-      postgres:
-        condition: service_healthy
-      redis-cache:
-        condition: service_healthy
-      redis-queue:
-        condition: service_healthy
+  # app:
+  #   build:
+  #     context: .
+  #   ports:
+  #     - "3000:3000"
+  #   environment:
+  #     NODE_ENV: production
+  #     PORT: 3000
+  #     DATABASE_URL: postgres://postgres:postgres@postgres:5432/applicant_tracking_system
+  #     REDIS_CACHE_URL: redis://redis-cache:6379
+  #     REDIS_QUEUE_URL: redis://redis-queue:6379
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
+  #     redis-cache:
+  #       condition: service_healthy
+  #     redis-queue:
+  #       condition: service_healthy
 
   postgres:
     image: postgres:16-alpine

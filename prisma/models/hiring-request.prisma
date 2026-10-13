@@ -1,0 +1,13 @@
+model HiringRequest {
+    id             String     @id @default(cuid())
+    status         String
+    position       String
+    employmentType String // FULL_TIME, PART_TIME
+    isTeaching     Boolean // Indicates if the employee is a teacher
+    departmentId   String
+    campusId       Int
+    campus         Campus @relation(fields: [campusId], references: [id])
+    department     Department @relation(fields: [departmentId], references: [id])
+
+    jobPosts JobPost[]
+}

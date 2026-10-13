@@ -1,0 +1,8 @@
+model Campus{
+    id  Int @id @default(autoincrement())
+    name String
+    location String
+
+    hiringRequests HiringRequest[]
+}
+

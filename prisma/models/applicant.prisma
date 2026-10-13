@@ -1,0 +1,11 @@
+model Applicant{
+    id String @id @default(cuid())
+    userId String
+    user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+    jobPostId String
+    jobPost JobPost @relation(fields: [jobPostId], references: [id], onDelete: Cascade)
+    status String
+    applyDate DateTime @default(now()) @db.Timestamptz(3)
+
+    scores ApplicantScore?
+}
