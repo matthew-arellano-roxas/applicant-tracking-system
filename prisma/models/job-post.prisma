@@ -16,4 +16,7 @@ model JobPost {
     deletedAt        DateTime?
 
     applicants Applicant[]
+
+    @@index([status, createdAt])
+    @@index([approvedBy])
 }

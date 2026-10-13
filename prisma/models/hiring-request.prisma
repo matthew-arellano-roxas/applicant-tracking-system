@@ -10,4 +10,7 @@ model HiringRequest {
     department     Department @relation(fields: [departmentId], references: [id])
 
     jobPosts JobPost[]
+
+    @@index([departmentId, campusId])
+    @@index([status])
 }

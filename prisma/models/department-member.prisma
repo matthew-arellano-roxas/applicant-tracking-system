@@ -4,4 +4,6 @@ model DepartmentMember {
     employee     Employee   @relation(fields: [employeeId], references: [id], onDelete: Cascade)
     departmentId String
     department   Department @relation(fields: [departmentId], references: [id], onDelete: Cascade)
+
+    @@index([departmentId, employeeId])
 }

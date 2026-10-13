@@ -8,4 +8,8 @@ model Applicant{
     applyDate DateTime @default(now()) @db.Timestamptz(3)
 
     scores ApplicantScore?
+
+    @@index([jobPostId, status])
+    @@index([userId])
+    @@index([status, applyDate])
 }

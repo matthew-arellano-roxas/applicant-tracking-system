@@ -5,4 +5,6 @@ model AuthIdentity {
     provider       String 
     providerUserId String
     hashPassword   String
+
+    @@unique([provider, providerUserId])
 }

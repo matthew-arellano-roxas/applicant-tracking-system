@@ -8,4 +8,7 @@ model ApplicantScore{
     certification Int
     totalScore Int
     createdAt DateTime @default(now()) @db.Timestamptz(3)
+
+    @@index([totalScore])
+    @@index([createdAt])
 }

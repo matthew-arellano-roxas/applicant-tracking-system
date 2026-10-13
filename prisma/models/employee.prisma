@@ -12,4 +12,6 @@ model Employee {
     employeeDocsStatus EmployeeDocumentStatus?
     employeeDocs EmployeeDocument?
     submittedId SubmittedId?
+
+    @@index([userId])
 }

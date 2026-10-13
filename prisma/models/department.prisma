@@ -7,4 +7,6 @@ model Department {
 
     hiringRequests    HiringRequest[]
     departmentMembers DepartmentMember[]
+
+    @@index([departmentHeadId])
 }
