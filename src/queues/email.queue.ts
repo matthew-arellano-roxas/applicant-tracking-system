@@ -1,20 +1,8 @@
-// src/queues/email.queue.ts
 import { Queue } from 'bullmq';
 import { queueConnection } from '@/configs';
-import { EMAIL_QUEUE } from '@/constants';
+import { QUEUE } from '@/constants';
 
-export interface EmailJobData {
-  to: string;
-  subject: string;
-  body: string;
-}
-
-export interface EmailJobResult {
-  sent: boolean;
-  messageId?: string;
-}
-
-export const emailQueue = new Queue<EmailJobData, EmailJobResult>(EMAIL_QUEUE, {
+export const emailQueue = new Queue(QUEUE.EMAIL, {
   connection: queueConnection,
   defaultJobOptions: {
     attempts: 3,

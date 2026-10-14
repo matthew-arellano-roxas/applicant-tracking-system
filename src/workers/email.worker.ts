@@ -2,20 +2,23 @@ import { Worker } from 'bullmq';
 import { transporter } from '../configs/mail-transporter';
 import { env } from '../configs/env';
 import { queueConnection } from '../configs/queue';
-import { EMAIL_QUEUE } from '../constants/queue.constant';
-import type { EmailJobData, EmailJobResult } from '../queues/email.queue';
+import { QUEUE } from '@/constants';
+import { renderTemplate } from '../utils/renderTemplate';
+import type { SendOtpEmailJobData } from '../types/otp-email.types';
 
-const worker = new Worker<EmailJobData, EmailJobResult>(
-  EMAIL_QUEUE,
+const worker = new Worker<SendOtpEmailJobData>(
+  QUEUE.EMAIL,
   async (job) => {
-    const info = await transporter.sendMail({
-      from: env.SMTP_USER,
-      to: job.data.to,
-      subject: job.data.subject,
-      text: job.data.body,
-    });
-
-    return { sent: true, messageId: info.messageId };
+    switch (job.name) {
+      case 'sendOtp':
+        return await transporter.sendMail({
+          from: env.SMTP_USER,
+          to: job.data.to,
+          subject: job.data.subject,
+          html: renderTemplate('otp-email.html', job.data.templateData),
+        });
+    }
+    return {};
   },
   { connection: queueConnection, concurrency: 5 },
 );
