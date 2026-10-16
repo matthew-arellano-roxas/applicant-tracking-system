@@ -5,48 +5,94 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="color-scheme" content="light" />
   <meta name="supported-color-schemes" content="light" />
-  <title>You've been shortlisted</title>
+  <title>Application Update - You've Been Shortlisted</title>
 </head>
-<body style="margin:0;padding:0;background-color:#ffffff;font-family:Arial,Helvetica,sans-serif;">
-  <!-- Preheader (hidden preview text) -->
-  <div style="display:none;max-height:0;overflow:hidden;opacity:0;">
-    Good news, {{name}}! You've been shortlisted for {{jobTitle}} at {{companyName}}.
+
+<body style="margin:0;padding:0;background-color:#f3f6fb;font-family:Arial,Helvetica,sans-serif;color:#1f2937;">
+
+  <!-- Preheader -->
+  <div style="display:none;max-height:0;overflow:hidden;opacity:0;color:transparent;">
+    Congratulations, {{name}}! Your application for {{jobTitle}} at {{companyName}} has been shortlisted.
   </div>
 
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#ffffff;padding:24px 12px;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
+    style="background-color:#f3f6fb;padding:32px 12px;">
     <tr>
       <td align="center">
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background-color:#ffffff;border:1px solid #dbe3ef;border-radius:12px;overflow:hidden;">
+
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
+          style="max-width:580px;background-color:#ffffff;border:1px solid #e2e8f0;border-radius:14px;overflow:hidden;">
 
           <!-- Header -->
           <tr>
-            <td align="center" style="background-color:#1e3a8a;background-image:linear-gradient(135deg,#1e3a8a,#1d4ed8);padding:32px 24px;">
-              <div style="font-size:40px;line-height:1;">🎉</div>
-              <h1 style="margin:12px 0 0 0;font-size:24px;color:#ffffff;font-weight:700;">You've been shortlisted!</h1>
-            </td>
-          </tr>
-
-          <!-- Body -->
-          <tr>
-            <td style="padding:32px 32px 8px 32px;color:#1f2937;">
-              <p style="margin:0 0 16px 0;font-size:16px;line-height:1.6;color:#111827;">Dear {{name}},</p>
-              <p style="margin:0 0 16px 0;font-size:15px;line-height:1.7;color:#374151;">
-                Thank you for applying. We're pleased to let you know that after reviewing your application,
-                you have been                 <strong style="color:#1d4ed8;">shortlisted</strong> for the position below.
+            <td align="center"
+              style="background-color:#1e3a8a;background-image:linear-gradient(135deg,#1e3a8a,#2563eb);padding:36px 24px;">
+              <div style="font-size:42px;line-height:1.2;">&#127881;</div>
+              <h1 style="margin:14px 0 8px;font-size:26px;line-height:1.3;color:#ffffff;font-weight:700;">
+                You've Been Shortlisted!
+              </h1>
+              <p style="margin:0;font-size:14px;line-height:1.6;color:#dbeafe;">
+                Your application has progressed to the next stage.
               </p>
             </td>
           </tr>
 
-          <!-- Details card -->
+          <!-- Main message -->
           <tr>
-            <td style="padding:8px 32px 8px 32px;">
-              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f9fafb;border-left:4px solid #3b82f6;border-radius:6px;">
+            <td style="padding:32px 32px 12px;">
+              <p style="margin:0 0 16px;font-size:16px;line-height:1.7;color:#111827;">
+                Dear {{name}},
+              </p>
+
+              <p style="margin:0 0 16px;font-size:15px;line-height:1.8;color:#374151;">
+                Thank you for your interest in joining
+                <strong>{{companyName}}</strong> and for taking the time to submit your application.
+              </p>
+
+              <p style="margin:0 0 16px;font-size:15px;line-height:1.8;color:#374151;">
+                We are pleased to inform you that, following an initial review of your qualifications
+                and application, you have been
+                <strong style="color:#1d4ed8;">shortlisted</strong>
+                for the position of <strong>{{jobTitle}}</strong>.
+              </p>
+
+              <p style="margin:0;font-size:15px;line-height:1.8;color:#374151;">
+                This means your application has been selected for further consideration.
+                Please review the information below and follow the next steps provided by the recruitment team.
+              </p>
+            </td>
+          </tr>
+
+          <!-- Application details -->
+          <tr>
+            <td style="padding:20px 32px 12px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
+                style="background-color:#f8fafc;border:1px solid #e2e8f0;border-left:4px solid #2563eb;border-radius:8px;">
                 <tr>
-                  <td style="padding:16px 20px;">
-                    <p style="margin:0 0 6px 0;font-size:13px;color:#6b7280;">Position</p>
-                    <p style="margin:0 0 14px 0;font-size:16px;font-weight:700;color:#1d4ed8;">{{jobTitle}}</p>
-                    <p style="margin:0 0 6px 0;font-size:13px;color:#6b7280;">Company</p>
-                    <p style="margin:0;font-size:16px;font-weight:700;color:#1d4ed8;">{{companyName}}</p>
+                  <td style="padding:20px;">
+
+                    <p style="margin:0 0 6px;font-size:12px;letter-spacing:0.7px;text-transform:uppercase;color:#64748b;">
+                      Application details
+                    </p>
+
+                    <p style="margin:0 0 18px;font-size:19px;line-height:1.5;font-weight:700;color:#1d4ed8;">
+                      {{jobTitle}}
+                    </p>
+
+                    <p style="margin:0 0 6px;font-size:13px;color:#64748b;">
+                      Company
+                    </p>
+                    <p style="margin:0 0 18px;font-size:15px;font-weight:700;line-height:1.5;color:#1f2937;">
+                      {{companyName}}
+                    </p>
+
+                    <p style="margin:0 0 6px;font-size:13px;color:#64748b;">
+                      Application reference
+                    </p>
+                    <p style="margin:0;font-size:15px;font-weight:700;line-height:1.5;color:#1f2937;">
+                      {{applicationReference}}
+                    </p>
+
                   </td>
                 </tr>
               </table>
@@ -55,40 +101,143 @@
 
           <!-- Next steps -->
           <tr>
-            <td style="padding:20px 32px 8px 32px;">
-              <h3 style="margin:0 0 8px 0;font-size:16px;color:#111827;">What happens next?</h3>
-              <p style="margin:0;font-size:15px;line-height:1.7;color:#374151;">{{nextStep}}</p>
+            <td style="padding:20px 32px 12px;">
+              <h2 style="margin:0 0 12px;font-size:18px;line-height:1.4;color:#111827;">
+                What happens next?
+              </h2>
+
+              <p style="margin:0 0 14px;font-size:15px;line-height:1.8;color:#374151;">
+                The recruitment team will provide further instructions regarding the next stage
+                of your application. Depending on the recruitment process, this may include an
+                interview, an assessment, or a request for additional information.
+              </p>
+
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td width="28" valign="top" style="padding:0 0 12px;">
+                    <div style="width:22px;height:22px;border-radius:50%;background-color:#dbeafe;color:#1d4ed8;text-align:center;line-height:22px;font-size:12px;font-weight:700;">
+                      1
+                    </div>
+                  </td>
+                  <td style="padding:2px 0 12px;font-size:14px;line-height:1.7;color:#374151;">
+                    <strong>Review your application status.</strong>
+                    Check the recruitment portal for updates and instructions.
+                  </td>
+                </tr>
+
+                <tr>
+                  <td width="28" valign="top" style="padding:0 0 12px;">
+                    <div style="width:22px;height:22px;border-radius:50%;background-color:#dbeafe;color:#1d4ed8;text-align:center;line-height:22px;font-size:12px;font-weight:700;">
+                      2
+                    </div>
+                  </td>
+                  <td style="padding:2px 0 12px;font-size:14px;line-height:1.7;color:#374151;">
+                    <strong>Follow the instructions provided.</strong>
+                    Prepare any documents or information requested by the recruitment team.
+                  </td>
+                </tr>
+
+                <tr>
+                  <td width="28" valign="top" style="padding:0 0 12px;">
+                    <div style="width:22px;height:22px;border-radius:50%;background-color:#dbeafe;color:#1d4ed8;text-align:center;line-height:22px;font-size:12px;font-weight:700;">
+                      3
+                    </div>
+                  </td>
+                  <td style="padding:2px 0 12px;font-size:14px;line-height:1.7;color:#374151;">
+                    <strong>Monitor your email.</strong>
+                    Watch for interview invitations, scheduling details, or other recruitment updates.
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Personalized next step -->
+          <tr>
+            <td style="padding:12px 32px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
+                style="background-color:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;">
+                <tr>
+                  <td style="padding:18px 20px;">
+                    <h3 style="margin:0 0 8px;font-size:15px;color:#1e40af;">
+                      Your next step
+                    </h3>
+                    <p style="margin:0;font-size:14px;line-height:1.8;color:#1e3a8a;">
+                      {{nextStep}}
+                    </p>
+                  </td>
+                </tr>
+              </table>
             </td>
           </tr>
 
           <!-- CTA -->
           <tr>
-            <td align="center" style="padding:24px 32px 8px 32px;">
-              <a href="{{ctaUrl}}" style="display:inline-block;background-color:#2563eb;color:#ffffff;text-decoration:none;font-size:15px;font-weight:700;padding:14px 32px;border-radius:8px;">
+            <td align="center" style="padding:24px 32px 12px;">
+              <a href="{{ctaUrl}}"
+                style="display:inline-block;background-color:#2563eb;color:#ffffff;text-decoration:none;font-size:15px;font-weight:700;padding:15px 32px;border-radius:8px;">
                 {{ctaText}}
               </a>
+
+              <p style="margin:14px 0 0;font-size:12px;line-height:1.7;color:#64748b;">
+                If the button does not work, access your application through the official recruitment portal.
+              </p>
+            </td>
+          </tr>
+
+          <!-- Important notice -->
+          <tr>
+            <td style="padding:20px 32px 12px;">
+              <p style="margin:0;font-size:13px;line-height:1.8;color:#64748b;">
+                <strong style="color:#475569;">Please note:</strong>
+                Being shortlisted means your application is being considered for the next stage.
+                It does not constitute a final job offer. Further steps and final decisions will be
+                communicated by the recruitment team.
+              </p>
             </td>
           </tr>
 
           <!-- Sign-off -->
           <tr>
-            <td style="padding:24px 32px 32px 32px;">
-              <p style="margin:0 0 4px 0;font-size:15px;line-height:1.6;color:#374151;">Best regards,</p>
-              <p style="margin:0;font-size:15px;font-weight:700;color:#111827;">{{senderName}}</p>
-              <p style="margin:0;font-size:14px;color:#6b7280;">{{companyName}}</p>
+            <td style="padding:24px 32px 32px;">
+              <p style="margin:0 0 8px;font-size:15px;line-height:1.7;color:#374151;">
+                Thank you for your interest in {{companyName}}. We appreciate the time you have
+                invested in your application and wish you success in the next stage of the process.
+              </p>
+
+              <p style="margin:20px 0 4px;font-size:14px;line-height:1.6;color:#374151;">
+                Best regards,
+              </p>
+              <p style="margin:0;font-size:15px;font-weight:700;line-height:1.6;color:#111827;">
+                {{senderName}}
+              </p>
+              <p style="margin:0;font-size:13px;line-height:1.6;color:#64748b;">
+                Recruitment Team
+              </p>
+              <p style="margin:0;font-size:13px;line-height:1.6;color:#64748b;">
+                {{companyName}}
+              </p>
             </td>
           </tr>
 
           <!-- Footer -->
           <tr>
-            <td align="center" style="background-color:#f9fafb;padding:20px 24px;border-top:1px solid #e5e7eb;">
-              <p style="margin:0;font-size:12px;color:#6b7280;">&copy; {{year}} {{companyName}}. All rights reserved.</p>
+            <td align="center"
+              style="background-color:#f8fafc;padding:22px 24px;border-top:1px solid #e2e8f0;">
+              <p style="margin:0 0 6px;font-size:12px;line-height:1.6;color:#64748b;">
+                This is an automated notification from the BCP Application Tracking System.
+              </p>
+              <p style="margin:0;font-size:12px;line-height:1.6;color:#64748b;">
+                &copy; {{year}} BCP ATS. All rights reserved.
+              </p>
             </td>
           </tr>
 
         </table>
+
       </td>
     </tr>
   </table>
+
 </body>
 </html>

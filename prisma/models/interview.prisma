@@ -1,0 +1,12 @@
+model Interview {
+    id          String    @id @default(cuid())
+    applicantId String
+    applicant   Applicant @relation(fields: [applicantId], references: [id], onDelete: Cascade)
+    date        DateTime  @db.Timestamptz(3)
+    type        String    @db.VarChar(20)
+    location    String?   @db.VarChar(255)
+    createdAt   DateTime  @default(now()) @db.Timestamptz(3)
+    updatedAt   DateTime  @updatedAt @db.Timestamptz(3)
+
+    @@index([applicantId, date])
+}
