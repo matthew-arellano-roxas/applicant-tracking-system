@@ -6,8 +6,6 @@ import { QUEUE } from '@/constants';
 const worker = new Worker(
   QUEUE.LLM,
   async (_job) => {
-    // switch (job.name) {
-    // }
     return {};
   },
   { connection: queueConnection, concurrency: 5 },
