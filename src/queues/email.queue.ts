@@ -1,5 +1,5 @@
 import { Queue } from 'bullmq';
-import { queueConnection } from '@/configs';
+import { queueConnection } from '@/configs/queue';
 import { QUEUE } from '@/constants';
 
 export const emailQueue = new Queue(QUEUE.EMAIL, {

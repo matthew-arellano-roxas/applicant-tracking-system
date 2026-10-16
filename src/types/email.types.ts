@@ -44,3 +44,27 @@ export interface InterviewInvitationInput {
   instructions?: string | null;
   ctaUrl: string;
 }
+
+// Email Job Data ( for sending emails )
+export type EmailJobData = EmailData<object>;
+
+export interface ShortlistedEmailTemplateData {
+  name: string;
+  jobTitle: string;
+  companyName: string;
+  applicationReference: string;
+  nextStep: string;
+  ctaUrl: string;
+  ctaText: string;
+  senderName: string;
+  year: number;
+}
+
+export interface ShortlistedInput {
+  to: string;
+  name: string;
+  jobTitle: string;
+  applicationReference: string;
+  nextStep: string;
+  ctaUrl: string;
+}

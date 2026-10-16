@@ -3,3 +3,7 @@ export const QUEUE = {
   LLM: 'llm',
   FILE_STORAGE: 'storage',
 };
+
+export const EMAIL_JOB = {
+  SEND: 'send',
+} as const;

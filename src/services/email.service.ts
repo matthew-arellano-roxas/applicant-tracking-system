@@ -1,21 +1,23 @@
-import { transporter } from '@/configs';
+import { transporter } from '@/configs/mail-transporter';
 import { env } from '@/configs/env';
+import { COMPANY } from '@/configs/company';
 import { renderTemplate } from '@/utils/renderTemplate';
-import type {
-  EmailData,
-  OtpEmailTemplateData,
-  OtpPurpose,
-  InterviewEmailTemplateData,
-  InterviewInvitationInput,
-} from '@/types';
-import { generateOtp } from '@/utils/generateOtp';
 import { humanizeEnum } from '@/utils/humanizeEnum';
 import { formatDate, formatTime } from '@/utils/formatDateTime';
-import { COMPANY } from '@/configs/company';
+import type {
+  EmailData,
+  InterviewEmailTemplateData,
+  InterviewInvitationInput,
+  OtpEmailTemplateData,
+  OtpPurpose,
+  ShortlistedEmailTemplateData,
+  ShortlistedInput,
+} from '@/types';
 
+// Core sender (used by the worker)
 export async function sendEmail<T extends object>(email: EmailData<T>) {
   const info = await transporter.sendMail({
-    from: `"Bestlink College of the Philippines" <${env.SMTP_USER}>`,
+    from: `"${COMPANY.name}" <${env.SMTP_USER}>`,
     to: email.to,
     subject: email.subject,
     text: email.text,
@@ -28,7 +30,7 @@ export async function sendEmail<T extends object>(email: EmailData<T>) {
   };
 }
 
-// Interview Email
+// Interview invitation
 const NOT_PROVIDED = 'To be announced';
 
 const withFallback = (value?: string | null): string => value?.trim() || NOT_PROVIDED;
@@ -67,7 +69,7 @@ const buildPlainText = (data: InterviewEmailTemplateData): string =>
     `- ${COMPANY.emailSenderName}`,
   ].join('\n');
 
-const buildInterviewEmail = (
+export const buildInterviewEmail = (
   input: InterviewInvitationInput,
 ): EmailData<InterviewEmailTemplateData> => {
   const templateData = buildTemplateData(input);
@@ -80,22 +82,19 @@ const buildInterviewEmail = (
   };
 };
 
-export const sendInterviewInvitation = (input: InterviewInvitationInput) =>
-  sendEmail(buildInterviewEmail(input));
-
 // OTP (registration and forgot password)
-function getOtpMessage(isRegistration: boolean): string {
-  return isRegistration
+export const OTP_EXPIRY_MINUTES = 5;
+
+const getOtpMessage = (isRegistration: boolean): string =>
+  isRegistration
     ? 'Use the one-time code below to complete your email verification.'
     : 'Use the one-time code below to verify your identity and reset your password.';
-}
 
-function getOtpSubject(isRegistration: boolean): string {
-  return isRegistration ? 'Verify Your Email Address' : 'Password Reset Verification';
-}
+const getOtpSubject = (isRegistration: boolean): string =>
+  isRegistration ? 'Verify Your Email Address' : 'Password Reset Verification';
 
-function getOtpText(name: string, message: string, otp: string, expiryMinutes: number): string {
-  return [
+const getOtpText = (name: string, message: string, otp: string, expiryMinutes: number): string =>
+  [
     `Hi ${name},`,
     '',
     message,
@@ -105,28 +104,64 @@ function getOtpText(name: string, message: string, otp: string, expiryMinutes: n
     '',
     "Never share this code with anyone. If you didn't request it, you can safely ignore this email.",
   ].join('\n');
-}
 
-export async function sendOtp(to: string, name: string, purpose: OtpPurpose): Promise<string> {
-  const otp = generateOtp();
-  const expiryMinutes = 5;
+export const buildOtpEmail = (
+  to: string,
+  name: string,
+  purpose: OtpPurpose,
+  otp: string,
+): EmailData<OtpEmailTemplateData> => {
   const isRegistration = purpose === 'REGISTRATION';
-  const message = getOtpMessage(isRegistration);
-
-  const email: EmailData<OtpEmailTemplateData> = {
+  return {
     to,
     subject: getOtpSubject(isRegistration),
-    text: getOtpText(name, message, otp, expiryMinutes),
+    text: getOtpText(name, getOtpMessage(isRegistration), otp, OTP_EXPIRY_MINUTES),
     templateFileName: 'otp-email.html',
     templateData: {
       name,
       otp,
-      expiryMinutes,
+      expiryMinutes: OTP_EXPIRY_MINUTES,
       year: new Date().getFullYear(),
       purpose,
     },
   };
+};
 
-  await sendEmail(email);
-  return otp;
-}
+// Shortlisted
+const buildShortlistedData = (input: ShortlistedInput): ShortlistedEmailTemplateData => ({
+  name: input.name,
+  jobTitle: input.jobTitle,
+  companyName: COMPANY.name,
+  applicationReference: input.applicationReference,
+  nextStep: input.nextStep,
+  ctaUrl: input.ctaUrl,
+  ctaText: 'View application',
+  senderName: COMPANY.emailSenderName,
+  year: new Date().getFullYear(),
+});
+
+const buildShortlistedText = (data: ShortlistedEmailTemplateData): string =>
+  [
+    `Dear ${data.name},`,
+    '',
+    `You have been shortlisted for ${data.jobTitle} at ${data.companyName}.`,
+    `Reference: ${data.applicationReference}`,
+    '',
+    data.nextStep,
+    '',
+    `View application: ${data.ctaUrl}`,
+    `- ${data.senderName}`,
+  ].join('\n');
+
+export const buildShortlistedEmail = (
+  input: ShortlistedInput,
+): EmailData<ShortlistedEmailTemplateData> => {
+  const templateData = buildShortlistedData(input);
+  return {
+    to: input.to,
+    subject: `Shortlisted: ${input.jobTitle}`,
+    text: buildShortlistedText(templateData),
+    templateFileName: 'shortlisted-email.html',
+    templateData,
+  };
+};
