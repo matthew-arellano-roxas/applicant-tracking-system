@@ -1,4 +1,3 @@
-// src/services/file-storage.service.ts
 import { supabase } from '@/configs/supabase';
 
 export const BUCKET = {
