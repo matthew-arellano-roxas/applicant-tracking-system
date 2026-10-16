@@ -1,9 +1,18 @@
 import { Router } from 'express';
-import { loginWithPassword, logout, me } from '@/controllers/auth.controller';
+import passport from 'passport';
+
+import { login, refresh, logout, getMe } from '@/controllers';
 import { requireAuth } from '@/middlewares/auth.middleware';
+import { asyncHandler } from '@/utils/asyncHandler';
 
-export const authRouter = Router();
+const authRoute = Router();
 
-authRouter.post('/login/password', loginWithPassword);
-authRouter.post('/logout', logout);
-authRouter.get('/me', requireAuth, me);
+authRoute.post('/login', passport.authenticate('local', { session: false }), asyncHandler(login));
+
+authRoute.post('/refresh', asyncHandler(refresh));
+
+authRoute.post('/logout', asyncHandler(logout));
+
+authRoute.get('/me', requireAuth, asyncHandler(getMe));
+
+export { authRoute };
