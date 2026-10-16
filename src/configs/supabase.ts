@@ -1,6 +1,5 @@
-import { createClient } from "@supabase/supabase-js";
+// src/configs/supabase.ts (replace; fixes env name mismatch)
+import { createClient } from '@supabase/supabase-js';
+import { env } from './env';
 
-export const supabase = createClient(
-  process.env.SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY! // server-side only, never expose to the browser
-);
+export const supabase = createClient(env.SUPABASE_PROJECT_URL!, env.SUPABASE_SECRET_KEY!);

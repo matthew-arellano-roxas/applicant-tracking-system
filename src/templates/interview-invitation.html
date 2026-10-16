@@ -17,7 +17,8 @@
   >
     <!-- Preheader (hidden preview text) -->
     <div style="display: none; max-height: 0; overflow: hidden; opacity: 0">
-      You're invited to interview for {{jobTitle}} on {{interviewDate}} at {{interviewTime}}.
+      You're invited to a {{interviewStage}} interview for {{jobTitle}} on {{interviewDate}} at
+      {{interviewTime}}.
     </div>
 
     <table
@@ -103,7 +104,7 @@
                         vertical-align: top;
                       "
                     >
-                      Date
+                      Stage
                     </td>
                     <td
                       style="
@@ -112,6 +113,23 @@
                         font-weight: 700;
                         color: #1d4ed8;
                       "
+                    >
+                      {{interviewStage}}
+                    </td>
+                  </tr>
+                  <tr>
+                    <td
+                      style="
+                        padding: 6px 18px;
+                        font-size: 13px;
+                        color: #6b7280;
+                        vertical-align: top;
+                      "
+                    >
+                      Date
+                    </td>
+                    <td
+                      style="padding: 6px 18px; font-size: 15px; font-weight: 700; color: #1d4ed8"
                     >
                       {{interviewDate}}
                     </td>
@@ -176,7 +194,8 @@
               </td>
             </tr>
 
-            <!-- Instructions -->
+            <!-- Instructions (only shown when provided) -->
+            {{#if interviewInstructions}}
             <tr>
               <td style="padding: 4px 32px 20px 32px">
                 <p style="margin: 0 0 6px 0; font-size: 14px; font-weight: 700; color: #111827">
@@ -195,6 +214,7 @@
                 </p>
               </td>
             </tr>
+            {{/if}}
 
             <!-- CTA -->
             <tr>

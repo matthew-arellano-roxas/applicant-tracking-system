@@ -18,6 +18,7 @@ model User {
     jobPosts       JobPost[]
     applicants     Applicant[]
     cvs            CV?
+    interviews     Interview[]
 
     @@index([role])
 }
