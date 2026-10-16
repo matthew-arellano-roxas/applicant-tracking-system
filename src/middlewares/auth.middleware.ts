@@ -1,28 +1,60 @@
-import type { Request, RequestHandler } from 'express';
-import { ApiError } from '@/utils/ApiError';
-import { COOKIE_NAME } from '@/utils/cookie';
-import { verifyToken } from '@/services/token.service';
-import type { TokenPayload } from '@/types';
+import type { RequestHandler } from 'express';
+import { verifyAccessToken } from '@/services/token.service';
 
-const readToken = (req: Request): string | undefined => req.cookies?.[COOKIE_NAME];
+export const requireAuth: RequestHandler = (req, res, next) => {
+  const token: unknown = req.cookies?.access_token;
 
-const tryVerify = (token: string): TokenPayload | null => {
+  if (typeof token !== 'string') {
+    res.status(401).json({
+      message: 'Authentication required',
+    });
+    return;
+  }
+
   try {
-    return verifyToken(token);
-  } catch {
-    return null;
+    const payload = verifyAccessToken(token);
+
+    req.user = {
+      id: payload.sub,
+      role: payload.role,
+    };
+
+    return next();
+  } catch (error) {
+    // Invalid or expired JWTs are authentication failures.
+    // Unexpected server errors should reach the error handler.
+    if (
+      error instanceof Error &&
+      (error.name === 'JsonWebTokenError' ||
+        error.name === 'TokenExpiredError' ||
+        error.name === 'NotBeforeError')
+    ) {
+      res.status(401).json({
+        message: 'Invalid or expired token',
+      });
+      return;
+    }
+
+    return next(error);
   }
 };
 
-export const requireAuth: RequestHandler = (req, res, next) => {
-  const token = readToken(req);
-  const payload = token ? tryVerify(token) : null;
-  if (!payload) return next(ApiError.unauthorized());
-  res.locals.auth = payload;
-  next();
-};
-
 export const requireRole =
-  (...roles: string[]): RequestHandler =>
-  (_req, res, next) =>
-    roles.includes(res.locals.auth?.role) ? next() : next(ApiError.forbidden());
+  (role: string): RequestHandler =>
+  (req, res, next) => {
+    if (!req.user) {
+      res.status(401).json({
+        message: 'Authentication required',
+      });
+      return;
+    }
+
+    if (req.user.role !== role) {
+      res.status(403).json({
+        message: 'Access denied',
+      });
+      return;
+    }
+
+    return next();
+  };

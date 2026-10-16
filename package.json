@@ -25,6 +25,7 @@
     "@prisma/adapter-pg": "^7.10.0",
     "@prisma/client": "^7.10.0",
     "@supabase/supabase-js": "^2.117.3",
+    "bcrypt": "^6.0.0",
     "bcryptjs": "^3.0.3",
     "bullmq": "^6.3.14",
     "cookie-parser": "^1.4.7",
@@ -42,6 +43,8 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
+    "@types/bcrypt": "^6.0.0",
+    "@types/cookie-parser": "^1.4.10",
     "@types/express": "^5.0.6",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^26.6.5",
@@ -55,6 +58,7 @@
     "prettier": "^3.9.10",
     "prisma": "^7.10.0",
     "ts-node": "^10.9.2",
+    "tsx": "^4.23.15",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.71.2"
   },
