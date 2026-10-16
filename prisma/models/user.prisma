@@ -6,7 +6,7 @@ model User {
     phoneNumber String?
 
     avatarUrl String?
-    role      String
+    role      String  @default("APPLICANT")
 
     education String
 

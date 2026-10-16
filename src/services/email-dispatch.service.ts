@@ -21,8 +21,9 @@ export const enqueueOtp = async (
   to: string,
   name: string,
   purpose: OtpPurpose,
+  requestedOtp?: string,
 ): Promise<string> => {
-  const otp = generateOtp();
+  const otp = requestedOtp ?? generateOtp();
   await enqueueEmail(buildOtpEmail(to, name, purpose, otp));
   return otp;
 };

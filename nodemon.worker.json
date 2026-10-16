@@ -1,7 +1,5 @@
-"dev": "concurrently -k -n api,worker -c blue,magenta \"npm:dev:api\" \"npm:dev:worker\"",
-"dev:api": "nodemon",
-"dev:worker": "nodemon --config nodemon.worker.json",
-"build": "tsc && tsc-alias",
-"start": "concurrently -k -n api,worker \"npm:start:api\" \"npm:start:worker\"",
-"start:api": "node dist/index.js",
-"start:worker": "node dist/workers/index.js"
+{
+  "watch": ["src"],
+  "ext": "ts,json,html",
+  "exec": "tsx src/workers/index.ts"
+}

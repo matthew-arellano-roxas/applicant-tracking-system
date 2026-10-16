@@ -1,10 +1,11 @@
 import type { RequestHandler } from 'express';
 
-import { prisma } from '@/configs';
+import { logger, prisma } from '@/configs';
 import { signAccessToken, signRefreshToken, verifyRefreshToken } from '@/services/token.service';
 import { accessCookieOptions, refreshCookieOptions } from '@/configs/cookies';
 import { ApiError } from '@/utils/ApiError';
 import { asyncHandler } from '@/utils/asyncHandler';
+import { startRegistration, verifyRegistration } from '@/services/auth.service';
 
 export const login: RequestHandler = asyncHandler((req, res) => {
   const user = req.user;
@@ -88,4 +89,48 @@ export const getMe: RequestHandler = asyncHandler((req, res) => {
   return res.status(200).json({
     user: req.user,
   });
+});
+
+// Register
+export const register: RequestHandler = asyncHandler(async (req, res) => {
+  const { firstName, lastName, email, password, education, phoneNumber } = req.body ?? {};
+
+  if (!firstName || !lastName || !email || !password || !education) {
+    throw ApiError.badRequest('Missing required fields');
+  }
+  if (typeof password !== 'string' || password.length < 8) {
+    throw ApiError.badRequest('Password must be at least 8 characters');
+  }
+
+  await startRegistration({
+    firstName,
+    lastName,
+    email,
+    password,
+    education,
+    phoneNumber: phoneNumber ?? null,
+  });
+
+  return res.status(202).json({ message: 'OTP sent. Please check your email.' });
+});
+
+export const verifyOtp: RequestHandler = asyncHandler(async (req, res) => {
+  const { email, otp } = req.body ?? {};
+
+  if (!email || !otp) {
+    logger.warn(
+      {
+        contentType: req.get('content-type'),
+        bodyKeys: req.body && typeof req.body === 'object' ? Object.keys(req.body) : [],
+        hasEmail: Boolean(email),
+        hasOtp: Boolean(otp),
+      },
+      'Registration verification request is missing email or OTP',
+    );
+    throw ApiError.badRequest('Email and OTP are required');
+  }
+
+  const user = await verifyRegistration(email, String(otp));
+
+  return res.status(201).json({ message: 'Registration successful', user });
 });

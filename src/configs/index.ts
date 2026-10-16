@@ -5,3 +5,4 @@ export * from './cache';
 export * from './supabase';
 export * from './groq';
 export * from './prisma';
+export * from './pino';

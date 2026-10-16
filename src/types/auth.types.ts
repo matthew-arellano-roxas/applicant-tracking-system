@@ -18,3 +18,12 @@ export type PendingRegistration = {
   otpHash: string;
   attempts: number;
 };
+
+export interface RegistrationInput {
+  firstName: string;
+  lastName: string;
+  email: string;
+  password: string;
+  education: string;
+  phoneNumber: string | null;
+}

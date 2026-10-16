@@ -8,13 +8,16 @@ export const errorHandler: ErrorRequestHandler = (error, _req, res, next) => {
     return;
   }
 
-  const status =
-    typeof error === 'object' && error !== null && 'status' in error
-      ? error.status
-      : typeof error === 'object' && error !== null && 'statusCode' in error
-        ? error.statusCode
+  const statusCodeValue =
+    typeof error === 'object' && error !== null && 'statusCode' in error
+      ? error.statusCode
+      : typeof error === 'object' && error !== null && 'status' in error
+        ? error.status
         : undefined;
-  const statusCode = typeof status === 'number' && status >= 400 && status <= 599 ? status : 500;
+  const statusCode =
+    typeof statusCodeValue === 'number' && statusCodeValue >= 400 && statusCodeValue <= 599
+      ? statusCodeValue
+      : 500;
 
   res.status(statusCode).json({
     error:
