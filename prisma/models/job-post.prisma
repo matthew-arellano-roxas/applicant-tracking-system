@@ -5,7 +5,6 @@ model JobPost {
     title            String
     description      String?
     status           String
-    requirements     Json          @default("{}")
     employmentType   String // FULL_TIME, PART_TIME, BOTH AVAILABLE
     applicationCount Int           @default(0)
     approvedBy       String
