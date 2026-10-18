@@ -1,7 +1,10 @@
 import { z } from 'zod';
+import { paginationQuerySchema } from '@/schemas/pagination.schema';
 
 const nonEmptyString = z.string().trim().min(1);
 const departmentIdParamsSchema = z.object({ id: nonEmptyString });
+export const departmentListQuerySchema = paginationQuerySchema;
+export const departmentMemberListQuerySchema = paginationQuerySchema;
 
 export { departmentIdParamsSchema };
 export const departmentMemberParamsSchema = z.object({

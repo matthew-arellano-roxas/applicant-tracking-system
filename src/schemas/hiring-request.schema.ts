@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { paginationQuerySchema } from '@/schemas/pagination.schema';
 
 const nonEmptyString = z.string().trim().min(1);
 
@@ -12,7 +13,7 @@ export const hiringRequestStatusSchema = z.enum([
 ]);
 
 export const hiringRequestIdParamsSchema = z.object({ id: nonEmptyString });
-export const hiringRequestListQuerySchema = z.object({
+export const hiringRequestListQuerySchema = paginationQuerySchema.extend({
   search: nonEmptyString.optional(),
   status: hiringRequestStatusSchema.optional(),
   departmentId: nonEmptyString.optional(),

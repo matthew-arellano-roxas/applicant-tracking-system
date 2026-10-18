@@ -1,8 +1,10 @@
 import { z } from 'zod';
+import { paginationQuerySchema } from '@/schemas/pagination.schema';
 
 const nonEmptyString = z.string().trim().min(1);
 
 export const employeeIdParamsSchema = z.object({ id: nonEmptyString });
+export const employeeListQuerySchema = paginationQuerySchema;
 
 const employeeFieldsSchema = z.object({
   userId: nonEmptyString,

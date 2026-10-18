@@ -1,4 +1,6 @@
 import { PrismaClient } from '@/generated/prisma/client';
+import type { PaginationQuery } from '@/schemas/pagination.schema';
+import { getPaginationMetadata } from '@/utils/pagination';
 import { ApiError } from '@/utils/ApiError';
 
 type Status = 'OPEN' | 'CLOSED';
@@ -55,11 +57,20 @@ export const createJobPostService = (db: PrismaClient) => {
     });
   };
 
-  const list = (filter: { status?: Status } = {}) =>
-    db.jobPost.findMany({
-      where: { ...filter, deletedAt: null },
-      orderBy: { createdAt: 'desc' },
-    });
+  const list = (filter: { status?: Status; page: number; limit: number }) => {
+    const { status, page, limit } = filter;
+    const where = { ...(status ? { status } : {}), deletedAt: null };
+    const pagination: PaginationQuery = { page, limit };
+    return Promise.all([
+      db.jobPost.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      db.jobPost.count({ where }),
+    ]).then(([items, total]) => ({ items, pagination: getPaginationMetadata(pagination, total) }));
+  };
 
   const update = async (
     id: string,

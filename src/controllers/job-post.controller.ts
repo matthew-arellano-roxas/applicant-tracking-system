@@ -19,9 +19,9 @@ import { asyncHandler } from '@/utils/asyncHandler';
 const jobPostService = createJobPostService(prisma);
 
 export const listJobPosts: RequestHandler = asyncHandler(async (req, res) => {
-  const query = req.query as z.output<typeof jobPostListQuerySchema>;
-  const jobPosts = await jobPostService.list(query);
-  return res.status(200).json({ jobPosts });
+  const query = req.query as unknown as z.output<typeof jobPostListQuerySchema>;
+  const result = await jobPostService.list(query);
+  return res.status(200).json({ jobPosts: result.items, pagination: result.pagination });
 });
 
 export const getJobPost: RequestHandler = asyncHandler(async (req, res) => {

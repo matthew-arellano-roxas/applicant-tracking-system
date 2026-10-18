@@ -5,20 +5,29 @@ import { prisma } from '@/configs';
 import {
   createEmployeeBodySchema,
   employeeIdParamsSchema,
+  employeeListQuerySchema,
   updateEmployeeBodySchema,
 } from '@/schemas/employee.schema';
 import { ApiError } from '@/utils/ApiError';
 import { asyncHandler } from '@/utils/asyncHandler';
 
-export const listEmployees: RequestHandler = asyncHandler(async (_req, res) => {
-  const employees = await prisma.employee.findMany({
+export const listEmployees: RequestHandler = asyncHandler(async (req, res) => {
+  const { page, limit } = req.query as unknown as z.output<typeof employeeListQuerySchema>;
+  const where = {};
+  const [employees, total] = await Promise.all([prisma.employee.findMany({
+    where,
     include: {
       user: { select: { id: true, firstName: true, lastName: true, email: true, role: true } },
       departments: true,
     },
     orderBy: { hiredAt: 'desc' },
+    skip: (page - 1) * limit,
+    take: limit,
+  }), prisma.employee.count({ where })]);
+  return res.status(200).json({
+    employees,
+    pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
   });
-  return res.status(200).json({ employees });
 });
 
 export const getEmployee: RequestHandler = asyncHandler(async (req, res) => {

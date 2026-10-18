@@ -13,6 +13,7 @@ import { UserRole } from '@/constants';
 import {
   createEmployeeBodySchema,
   employeeIdParamsSchema,
+  employeeListQuerySchema,
   updateEmployeeBodySchema,
 } from '@/schemas/employee.schema';
 import { validateRequest } from '@/utils/validateRequest';
@@ -22,7 +23,7 @@ const employeeReadRoles = [UserRole.Admin, UserRole.Hr, UserRole.Dean, UserRole.
 const employeeManagerRoles = [UserRole.Admin, UserRole.Hr];
 
 employeeRoute.use(requireAuth);
-employeeRoute.get('/', requireRole(...employeeReadRoles), listEmployees);
+employeeRoute.get('/', requireRole(...employeeReadRoles), validateRequest(employeeListQuerySchema, 'query'), listEmployees);
 employeeRoute.post('/', requireRole(...employeeManagerRoles), validateRequest(createEmployeeBodySchema), createEmployee);
 employeeRoute.get('/:id', requireRole(...employeeReadRoles), validateRequest(employeeIdParamsSchema, 'params'), getEmployee);
 employeeRoute.patch(

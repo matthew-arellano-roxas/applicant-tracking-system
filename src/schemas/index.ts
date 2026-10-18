@@ -3,4 +3,5 @@ export * from './department.schema';
 export * from './employee.schema';
 export * from './hiring-request.schema';
 export * from './job-post.schema';
+export * from './pagination.schema';
 export * from './user.schema';

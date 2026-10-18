@@ -1,4 +1,6 @@
 import { PrismaClient } from '@/generated/prisma/client';
+import type { PaginationQuery } from '@/schemas/pagination.schema';
+import { getPaginationMetadata } from '@/utils/pagination';
 import { ApiError } from '@/utils/ApiError';
 
 export type Department = {
@@ -23,11 +25,11 @@ export type UpdateDepartmentInput = Partial<CreateDepartmentInput>;
 
 export type DepartmentService = {
   getDepartmentById: (id: string) => Promise<Department>;
-  listDepartments: () => Promise<Department[]>;
+  listDepartments: (pagination: PaginationQuery) => Promise<{ items: Department[]; pagination: ReturnType<typeof getPaginationMetadata> }>;
   createDepartment: (input: CreateDepartmentInput) => Promise<Department>;
   updateDepartment: (id: string, input: UpdateDepartmentInput) => Promise<Department>;
   deleteDepartment: (id: string) => Promise<Department>;
-  listMembers: (departmentId: string) => Promise<DepartmentMember[]>;
+  listMembers: (departmentId: string, pagination: PaginationQuery) => Promise<{ items: DepartmentMember[]; pagination: ReturnType<typeof getPaginationMetadata> }>;
   addMember: (departmentId: string, employeeId: string) => Promise<DepartmentMember>;
   removeMember: (departmentId: string, employeeId: string) => Promise<{ count: number }>;
   assignDepartmentHead: (departmentId: string, employeeId: string) => Promise<Department>;
@@ -46,8 +48,17 @@ export const createDepartmentService = (prisma: PrismaClient): DepartmentService
     return department;
   }
 
-  async function listDepartments(): Promise<Department[]> {
-    return prisma.department.findMany({ orderBy: { name: 'asc' } });
+  async function listDepartments(pagination: PaginationQuery) {
+    const { page, limit } = pagination;
+    const [items, total] = await Promise.all([
+      prisma.department.findMany({
+        orderBy: { name: 'asc' },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      prisma.department.count(),
+    ]);
+    return { items, pagination: getPaginationMetadata(pagination, total) };
   }
 
   async function createDepartment(input: CreateDepartmentInput): Promise<Department> {
@@ -75,9 +86,19 @@ export const createDepartmentService = (prisma: PrismaClient): DepartmentService
     return prisma.department.delete({ where: { id } });
   }
 
-  async function listMembers(departmentId: string): Promise<DepartmentMember[]> {
+  async function listMembers(departmentId: string, pagination: PaginationQuery) {
     await getDepartmentById(departmentId);
-    return prisma.departmentMember.findMany({ where: { departmentId } });
+    const { page, limit } = pagination;
+    const [items, total] = await Promise.all([
+      prisma.departmentMember.findMany({
+        where: { departmentId },
+        orderBy: { id: 'asc' },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      prisma.departmentMember.count({ where: { departmentId } }),
+    ]);
+    return { items, pagination: getPaginationMetadata(pagination, total) };
   }
 
   async function addMember(departmentId: string, employeeId: string): Promise<DepartmentMember> {
