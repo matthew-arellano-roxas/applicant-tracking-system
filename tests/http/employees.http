@@ -1,9 +1,14 @@
 @baseUrl = http://localhost:3000
 @userId = replace-with-user-id
 @departmentId = replace-with-department-id
+@page = 1
+@limit = 10
 
-### List employees
-GET {{baseUrl}}/employees
+### List employees (page 1)
+GET {{baseUrl}}/employees?page={{page}}&limit={{limit}}
+
+### List employees (page 2)
+GET {{baseUrl}}/employees?page=2&limit={{limit}}
 
 ### Create employee
 # @name createEmployee

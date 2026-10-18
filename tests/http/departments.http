@@ -1,8 +1,13 @@
 @baseUrl = http://localhost:3000
 @employeeId = replace-with-employee-id
+@page = 1
+@limit = 10
 
-### List departments
-GET {{baseUrl}}/departments
+### List departments (page 1)
+GET {{baseUrl}}/departments?page={{page}}&limit={{limit}}
+
+### List departments (page 2)
+GET {{baseUrl}}/departments?page=2&limit={{limit}}
 
 ### Create department
 # @name createDepartment
@@ -38,8 +43,11 @@ Content-Type: application/json
 ### Remove department head
 DELETE {{baseUrl}}/departments/{{departmentId}}/head
 
-### List department members
-GET {{baseUrl}}/departments/{{departmentId}}/members
+### List department members (page 1)
+GET {{baseUrl}}/departments/{{departmentId}}/members?page={{page}}&limit={{limit}}
+
+### List department members (page 2)
+GET {{baseUrl}}/departments/{{departmentId}}/members?page=2&limit={{limit}}
 
 ### Add department member
 POST {{baseUrl}}/departments/{{departmentId}}/members

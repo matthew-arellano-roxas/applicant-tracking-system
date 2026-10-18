@@ -1,8 +1,13 @@
 @baseUrl = http://localhost:3000
 @hiringRequestId = replace-with-approved-hiring-request-id
+@page = 1
+@limit = 10
 
-### List open job posts
-GET {{baseUrl}}/job-posts?status=OPEN
+### List open job posts (page 1)
+GET {{baseUrl}}/job-posts?status=OPEN&page={{page}}&limit={{limit}}
+
+### List open job posts (page 2)
+GET {{baseUrl}}/job-posts?status=OPEN&page=2&limit={{limit}}
 
 ### Create job post (hiring request must be approved)
 # @name createJobPost

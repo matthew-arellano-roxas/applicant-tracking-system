@@ -1,9 +1,14 @@
 @baseUrl = http://localhost:3000
 @departmentId = replace-with-department-id
 @campusId = 1
+@page = 1
+@limit = 10
 
-### Search hiring requests
-GET {{baseUrl}}/hiring-requests?search=engineer&status=APPROVED
+### Search hiring requests (page 1)
+GET {{baseUrl}}/hiring-requests?search=engineer&status=APPROVED&page={{page}}&limit={{limit}}
+
+### Search hiring requests (page 2)
+GET {{baseUrl}}/hiring-requests?search=engineer&status=APPROVED&page=2&limit={{limit}}
 
 ### Create hiring request
 # @name createHiringRequest
