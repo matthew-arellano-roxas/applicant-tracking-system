@@ -3,7 +3,9 @@ import { env } from '@/configs';
 import { errorHandler } from '@/errors';
 import {
   authRoute,
+  applicantRoute,
   departmentRoute,
+  cvRoute,
   employeeRoute,
   hiringRequestRoute,
   jobPostRoute,
@@ -24,6 +26,8 @@ passport.use('local', passwordStrategy);
 app.use(passport.initialize());
 
 app.use(authRoute);
+app.use('/applications', applicantRoute);
+app.use('/cvs', cvRoute);
 app.use('/departments', departmentRoute);
 app.use('/employees', employeeRoute);
 app.use('/users', userRoute);

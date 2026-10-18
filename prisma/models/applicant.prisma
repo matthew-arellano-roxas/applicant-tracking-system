@@ -5,6 +5,7 @@ model Applicant{
     jobPostId String
     jobPost JobPost @relation(fields: [jobPostId], references: [id], onDelete: Cascade)
     status String
+    scoreStatus String @default("PENDING")
     applyDate DateTime @default(now()) @db.Timestamptz(3)
 
     scores ApplicantScore?
@@ -13,4 +14,5 @@ model Applicant{
     @@index([jobPostId, status])
     @@index([userId])
     @@index([status, applyDate])
+    @@index([scoreStatus])
 }

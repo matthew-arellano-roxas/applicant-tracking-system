@@ -18,6 +18,7 @@ CREATE TABLE "Applicant" (
     "userId" TEXT NOT NULL,
     "jobPostId" TEXT NOT NULL,
     "status" TEXT NOT NULL,
+    "scoreStatus" TEXT NOT NULL DEFAULT 'PENDING',
     "applyDate" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "Applicant_pkey" PRIMARY KEY ("id")
@@ -121,10 +122,29 @@ CREATE TABLE "HiringRequest" (
     "position" TEXT NOT NULL,
     "employmentType" TEXT NOT NULL,
     "isTeaching" BOOLEAN NOT NULL,
+    "requirements" JSONB NOT NULL DEFAULT '{}',
     "departmentId" TEXT NOT NULL,
     "campusId" INTEGER NOT NULL,
 
     CONSTRAINT "HiringRequest_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Interview" (
+    "id" TEXT NOT NULL,
+    "applicantId" TEXT NOT NULL,
+    "interviewerId" TEXT,
+    "stage" VARCHAR(30) NOT NULL,
+    "date" TIMESTAMPTZ(3) NOT NULL,
+    "type" VARCHAR(20) NOT NULL,
+    "status" VARCHAR(20) NOT NULL DEFAULT 'SCHEDULED',
+    "location" VARCHAR(255),
+    "instructions" TEXT,
+    "notes" TEXT,
+    "createdAt" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMPTZ(3) NOT NULL,
+
+    CONSTRAINT "Interview_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -134,7 +154,6 @@ CREATE TABLE "JobPost" (
     "title" TEXT NOT NULL,
     "description" TEXT,
     "status" TEXT NOT NULL,
-    "requirements" JSONB NOT NULL DEFAULT '{}',
     "employmentType" TEXT NOT NULL,
     "applicationCount" INTEGER NOT NULL DEFAULT 0,
     "approvedBy" TEXT NOT NULL,
@@ -165,7 +184,7 @@ CREATE TABLE "User" (
     "email" TEXT NOT NULL,
     "phoneNumber" TEXT,
     "avatarUrl" TEXT,
-    "role" TEXT NOT NULL,
+    "role" TEXT NOT NULL DEFAULT 'APPLICANT',
     "education" TEXT NOT NULL,
     "createdAt" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMPTZ(3),
@@ -185,10 +204,40 @@ CREATE TABLE "ValidId" (
 CREATE UNIQUE INDEX "ApplicantScore_applicantId_key" ON "ApplicantScore"("applicantId");
 
 -- CreateIndex
+CREATE INDEX "ApplicantScore_totalScore_idx" ON "ApplicantScore"("totalScore");
+
+-- CreateIndex
+CREATE INDEX "ApplicantScore_createdAt_idx" ON "ApplicantScore"("createdAt");
+
+-- CreateIndex
+CREATE INDEX "Applicant_jobPostId_status_idx" ON "Applicant"("jobPostId", "status");
+
+-- CreateIndex
+CREATE INDEX "Applicant_userId_idx" ON "Applicant"("userId");
+
+-- CreateIndex
+CREATE INDEX "Applicant_status_applyDate_idx" ON "Applicant"("status", "applyDate");
+
+-- CreateIndex
+CREATE INDEX "Applicant_scoreStatus_idx" ON "Applicant"("scoreStatus");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "AuthIdentity_userId_key" ON "AuthIdentity"("userId");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "AuthIdentity_provider_providerUserId_key" ON "AuthIdentity"("provider", "providerUserId");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "CV_user_id_key" ON "CV"("user_id");
+
+-- CreateIndex
+CREATE INDEX "DepartmentMember_departmentId_employeeId_idx" ON "DepartmentMember"("departmentId", "employeeId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "DepartmentMember_departmentId_employeeId_key" ON "DepartmentMember"("departmentId", "employeeId");
+
+-- CreateIndex
+CREATE INDEX "Department_departmentHeadId_idx" ON "Department"("departmentHeadId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "EmployeeDocumentStatus_employeeId_key" ON "EmployeeDocumentStatus"("employeeId");
@@ -197,13 +246,40 @@ CREATE UNIQUE INDEX "EmployeeDocumentStatus_employeeId_key" ON "EmployeeDocument
 CREATE UNIQUE INDEX "EmployeeDocument_employeeId_key" ON "EmployeeDocument"("employeeId");
 
 -- CreateIndex
+CREATE INDEX "Employee_userId_idx" ON "Employee"("userId");
+
+-- CreateIndex
+CREATE INDEX "HiringRequest_departmentId_campusId_idx" ON "HiringRequest"("departmentId", "campusId");
+
+-- CreateIndex
+CREATE INDEX "HiringRequest_status_idx" ON "HiringRequest"("status");
+
+-- CreateIndex
+CREATE INDEX "Interview_applicantId_date_idx" ON "Interview"("applicantId", "date");
+
+-- CreateIndex
+CREATE INDEX "Interview_status_date_idx" ON "Interview"("status", "date");
+
+-- CreateIndex
+CREATE INDEX "Interview_interviewerId_idx" ON "Interview"("interviewerId");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "JobPost_hiringRequestId_key" ON "JobPost"("hiringRequestId");
+
+-- CreateIndex
+CREATE INDEX "JobPost_status_createdAt_idx" ON "JobPost"("status", "createdAt");
+
+-- CreateIndex
+CREATE INDEX "JobPost_approvedBy_idx" ON "JobPost"("approvedBy");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "SubmittedId_employeeId_key" ON "SubmittedId"("employeeId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
+
+-- CreateIndex
+CREATE INDEX "User_role_idx" ON "User"("role");
 
 -- AddForeignKey
 ALTER TABLE "ApplicantScore" ADD CONSTRAINT "ApplicantScore_applicantId_fkey" FOREIGN KEY ("applicantId") REFERENCES "Applicant"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -243,6 +319,12 @@ ALTER TABLE "HiringRequest" ADD CONSTRAINT "HiringRequest_campusId_fkey" FOREIGN
 
 -- AddForeignKey
 ALTER TABLE "HiringRequest" ADD CONSTRAINT "HiringRequest_departmentId_fkey" FOREIGN KEY ("departmentId") REFERENCES "Department"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Interview" ADD CONSTRAINT "Interview_applicantId_fkey" FOREIGN KEY ("applicantId") REFERENCES "Applicant"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Interview" ADD CONSTRAINT "Interview_interviewerId_fkey" FOREIGN KEY ("interviewerId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "JobPost" ADD CONSTRAINT "JobPost_hiringRequestId_fkey" FOREIGN KEY ("hiringRequestId") REFERENCES "HiringRequest"("id") ON DELETE CASCADE ON UPDATE CASCADE;

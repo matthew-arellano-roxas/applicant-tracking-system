@@ -1,17 +1,28 @@
 import { PrismaClient } from '@/generated/prisma/client';
+import { llmQueue } from '@/queues/llm.queue';
+import { LLM_JOB } from '@/constants';
+import { ApiError } from '@/utils/ApiError';
+import { getPaginationMetadata } from '@/utils/pagination';
 
 export type Applicant = {
   id: string;
   userId: string;
   jobPostId: string;
   status: string;
+  scoreStatus: string;
   applyDate: Date;
 };
 
 export type ApplicantWithDetails = Applicant & {
   user?: { id: string; firstName: string; lastName: string; email: string };
   jobPost?: { id: string; title: string };
-  scores?: { totalScore: number } | null;
+  scores?: {
+    educationalBackground: number;
+    skills: number;
+    workExperience: number;
+    certification: number;
+    totalScore: number;
+  } | null;
 };
 
 export type CreateApplicationInput = {
@@ -19,16 +30,23 @@ export type CreateApplicationInput = {
   jobPostId: string;
 };
 
+export type ApplicationListFilter = {
+  status?: string;
+  scoreStatus?: string;
+  jobPostId?: string;
+  userId?: string;
+  page?: number;
+  limit?: number;
+};
+
 export type ApplicationService = {
   createApplication: (input: CreateApplicationInput) => Promise<Applicant>;
+  retryScoring: (id: string) => Promise<void>;
   getApplication: (id: string) => Promise<ApplicantWithDetails>;
-  listApplications: (filter?: {
-    status?: string;
-    jobPostId?: string;
-    userId?: string;
-    page?: number;
-    pageSize?: number;
-  }) => Promise<ApplicantWithDetails[]>;
+  listApplications: (filter?: ApplicationListFilter) => Promise<{
+    items: ApplicantWithDetails[];
+    pagination: ReturnType<typeof getPaginationMetadata>;
+  }>;
   updateApplicationStatus: (id: string, status: string) => Promise<Applicant>;
   listApplicationsByJobPost: (jobPostId: string) => Promise<ApplicantWithDetails[]>;
   listApplicationsByUser: (userId: string) => Promise<ApplicantWithDetails[]>;
@@ -37,32 +55,67 @@ export type ApplicationService = {
 
 export const createApplicantService = (prisma: PrismaClient): ApplicationService => {
   async function createApplication(input: CreateApplicationInput): Promise<Applicant> {
-    const user = await prisma.user.findUnique({ where: { id: input.userId } });
-    if (!user) throw new Error('User not found');
+    const applicant = await prisma.$transaction(async (tx) => {
+      const user = await tx.user.findUnique({
+        where: { id: input.userId },
+        select: { id: true, cvs: { select: { file_url: true } } },
+      });
+      if (!user) throw ApiError.notFound('User not found');
+      if (!user.cvs) throw ApiError.badRequest('Upload a CV before applying');
+      if (!user.cvs.file_url.toLowerCase().endsWith('.pdf')) {
+        throw ApiError.badRequest('CV scoring currently supports PDF files only');
+      }
 
-    const jobPost = await prisma.jobPost.findFirst({
-      where: { id: input.jobPostId, deletedAt: null },
-    });
-    if (!jobPost) throw new Error('Job post not found');
+      const jobPost = await tx.jobPost.findFirst({
+        where: { id: input.jobPostId, deletedAt: null, status: 'OPEN' },
+        select: { id: true },
+      });
+      if (!jobPost) throw ApiError.notFound('Open job post not found');
 
-    const existing = await prisma.applicant.findFirst({
-      where: { userId: input.userId, jobPostId: input.jobPostId },
-    });
-    if (existing) throw new Error('User has already applied for this job');
+      const existing = await tx.applicant.findFirst({
+        where: { userId: input.userId, jobPostId: input.jobPostId },
+      });
+      if (existing) throw ApiError.conflict('You have already applied for this job');
 
-    // increment job post application count
-    await prisma.jobPost.update({
-      where: { id: input.jobPostId },
-      data: { applicationCount: { increment: 1 } },
+      const created = await tx.applicant.create({
+        data: {
+          userId: input.userId,
+          jobPostId: input.jobPostId,
+          status: 'APPLIED',
+          scoreStatus: 'PENDING',
+        },
+        select: {
+          id: true,
+          userId: true,
+          jobPostId: true,
+          status: true,
+          scoreStatus: true,
+          applyDate: true,
+        },
+      });
+      await tx.jobPost.update({
+        where: { id: input.jobPostId },
+        data: { applicationCount: { increment: 1 } },
+      });
+      return created;
     });
 
-    return prisma.applicant.create({
-      data: {
-        userId: input.userId,
-        jobPostId: input.jobPostId,
-        status: 'APPLIED',
-      },
-    });
+    try {
+      await llmQueue.add(
+        LLM_JOB.SCORE_APPLICATION,
+        { applicantId: applicant.id },
+        { jobId: applicant.id },
+      );
+    } catch (error) {
+      await prisma.applicant.update({
+        where: { id: applicant.id },
+        data: { scoreStatus: 'FAILED' },
+      });
+      console.error('Could not queue application CV scoring:', error);
+      return { ...applicant, scoreStatus: 'FAILED' };
+    }
+
+    return applicant;
   }
 
   async function getApplication(id: string): Promise<ApplicantWithDetails> {
@@ -71,41 +124,80 @@ export const createApplicantService = (prisma: PrismaClient): ApplicationService
       include: {
         user: { select: { id: true, firstName: true, lastName: true, email: true } },
         jobPost: { select: { id: true, title: true } },
-        scores: { select: { totalScore: true } },
+        scores: {
+          select: {
+            educationalBackground: true,
+            skills: true,
+            workExperience: true,
+            certification: true,
+            totalScore: true,
+          },
+        },
       },
     });
-    if (!applicant) throw new Error('Application not found');
+    if (!applicant) throw ApiError.notFound('Application not found');
     return applicant;
   }
 
-  async function listApplications(
-    filter: {
-      status?: string;
-      jobPostId?: string;
-      userId?: string;
-      page?: number;
-      pageSize?: number;
-    } = {},
-  ): Promise<ApplicantWithDetails[]> {
-    const { page = 1, pageSize = 20, ...where } = filter;
-    const skip = (page - 1) * pageSize;
-
-    return prisma.applicant.findMany({
-      where,
-      include: {
-        user: { select: { id: true, firstName: true, lastName: true, email: true } },
-        jobPost: { select: { id: true, title: true } },
-        scores: { select: { totalScore: true } },
-      },
-      orderBy: { applyDate: 'desc' },
-      skip,
-      take: pageSize,
+  async function retryScoring(id: string): Promise<void> {
+    const applicant = await prisma.applicant.findUnique({
+      where: { id },
+      select: { id: true, scoreStatus: true },
     });
+    if (!applicant) throw ApiError.notFound('Application not found');
+    if (applicant.scoreStatus !== 'FAILED') {
+      throw ApiError.conflict('Only applications with failed CV scoring can be retried');
+    }
+
+    await prisma.applicant.update({ where: { id }, data: { scoreStatus: 'PENDING' } });
+    try {
+      await llmQueue.add(
+        LLM_JOB.SCORE_APPLICATION,
+        { applicantId: id },
+        { jobId: `${id}-retry-${Date.now()}` },
+      );
+    } catch (error) {
+      await prisma.applicant.update({ where: { id }, data: { scoreStatus: 'FAILED' } });
+      throw error;
+    }
+  }
+
+  async function listApplications(filter: ApplicationListFilter = {}): Promise<{
+    items: ApplicantWithDetails[];
+    pagination: ReturnType<typeof getPaginationMetadata>;
+  }> {
+    const { page = 1, limit = 20, ...where } = filter;
+    const skip = (page - 1) * limit;
+
+    const [items, total] = await Promise.all([
+      prisma.applicant.findMany({
+        where,
+        include: {
+          user: { select: { id: true, firstName: true, lastName: true, email: true } },
+          jobPost: { select: { id: true, title: true } },
+          scores: {
+            select: {
+              educationalBackground: true,
+              skills: true,
+              workExperience: true,
+              certification: true,
+              totalScore: true,
+            },
+          },
+        },
+        orderBy: { applyDate: 'desc' },
+        skip,
+        take: limit,
+      }),
+      prisma.applicant.count({ where }),
+    ]);
+
+    return { items, pagination: getPaginationMetadata({ page, limit }, total) };
   }
 
   async function updateApplicationStatus(id: string, status: string): Promise<Applicant> {
     const applicant = await prisma.applicant.findUnique({ where: { id } });
-    if (!applicant) throw new Error('Application not found');
+    if (!applicant) throw ApiError.notFound('Application not found');
 
     return prisma.applicant.update({
       where: { id },
@@ -119,7 +211,15 @@ export const createApplicantService = (prisma: PrismaClient): ApplicationService
       include: {
         user: { select: { id: true, firstName: true, lastName: true, email: true } },
         jobPost: { select: { id: true, title: true } },
-        scores: { select: { totalScore: true } },
+        scores: {
+          select: {
+            educationalBackground: true,
+            skills: true,
+            workExperience: true,
+            certification: true,
+            totalScore: true,
+          },
+        },
       },
       orderBy: { applyDate: 'desc' },
     });
@@ -131,7 +231,15 @@ export const createApplicantService = (prisma: PrismaClient): ApplicationService
       include: {
         user: { select: { id: true, firstName: true, lastName: true, email: true } },
         jobPost: { select: { id: true, title: true } },
-        scores: { select: { totalScore: true } },
+        scores: {
+          select: {
+            educationalBackground: true,
+            skills: true,
+            workExperience: true,
+            certification: true,
+            totalScore: true,
+          },
+        },
       },
       orderBy: { applyDate: 'desc' },
     });
@@ -144,12 +252,13 @@ export const createApplicantService = (prisma: PrismaClient): ApplicationService
       where: { id: applicationId },
       select: { scores: { select: { totalScore: true } } },
     });
-    if (!applicant) throw new Error('Application not found');
+    if (!applicant) throw ApiError.notFound('Application not found');
     return applicant.scores;
   }
 
   return {
     createApplication,
+    retryScoring,
     getApplication,
     listApplications,
     updateApplicationStatus,

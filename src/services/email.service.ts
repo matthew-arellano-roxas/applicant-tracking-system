@@ -1,6 +1,6 @@
 import { transporter } from '@/configs/mail-transporter';
 import { env } from '@/configs/env';
-import { COMPANY } from '@/configs/company';
+import { COMPANY } from '@/configs/school';
 import { renderTemplate } from '@/utils/renderTemplate';
 import { humanizeEnum } from '@/utils/humanizeEnum';
 import { formatDate, formatTime } from '@/utils/formatDateTime';

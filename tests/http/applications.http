@@ -1,0 +1,49 @@
+@baseUrl = http://localhost:3000
+@jobPostId = cmvdxmld80017akun1kaxw0p7
+@page = 1
+@limit = 10
+
+### First upload a PDF using cvs.http, then apply (login as an APPLICANT in auth.http)
+# @name createApplication
+POST {{baseUrl}}/applications
+Content-Type: application/json
+
+{
+  "jobPostId": "{{jobPostId}}"
+}
+
+### Use the returned application ID in this file
+# @applicationId = {{createApplication.response.body.$.application.id}}
+@applicationId = {{createApplication.response.body.$.application.id}}
+
+### Applicant: list my applications (page 1)
+GET {{baseUrl}}/applications/me?page={{page}}&limit={{limit}}
+
+### Applicant: list my applications (page 2)
+GET {{baseUrl}}/applications/me?page=2&limit={{limit}}
+
+### Applicant: filter my applied applications
+GET {{baseUrl}}/applications/me?status=APPLIED&page={{page}}&limit={{limit}}
+
+### Applicant: see applications whose CV scoring is complete
+GET {{baseUrl}}/applications/me?scoreStatus=COMPLETED&page={{page}}&limit={{limit}}
+
+### Applicant, HR, or ADMIN: get one application and its scores
+GET {{baseUrl}}/applications/{{applicationId}}
+
+### HR or ADMIN: list applications with optional filters and pagination
+GET {{baseUrl}}/applications?jobPostId={{jobPostId}}&page={{page}}&limit={{limit}}
+
+### HR or ADMIN: filter applications whose CV scoring has completed
+GET {{baseUrl}}/applications?jobPostId={{jobPostId}}&scoreStatus=COMPLETED&page={{page}}&limit={{limit}}
+
+### HR or ADMIN: update application status
+PATCH {{baseUrl}}/applications/{{applicationId}}/status
+Content-Type: application/json
+
+{
+  "status": "SHORTLISTED"
+}
+
+### Retry scoring after scoreStatus is FAILED (applicant owner, HR, or ADMIN)
+POST {{baseUrl}}/applications/{{applicationId}}/retry-scoring

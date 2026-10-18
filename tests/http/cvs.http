@@ -1,0 +1,8 @@
+@baseUrl = http://localhost:3000
+
+### Upload your PDF CV (login as an APPLICANT first in auth.http)
+# Replace the file path below with the path to your PDF.
+POST {{baseUrl}}/cvs/upload
+Content-Type: application/pdf
+
+< ./your-cv.pdf

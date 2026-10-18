@@ -25,6 +25,11 @@ export interface StorageServiceConfig {
 }
 
 export interface StorageService {
+  uploadPdf: (
+    userId: string,
+    file: Buffer,
+  ) => Promise<{ id: string; path: string; mimeType: string; size: number; uploadedAt: Date }>;
+
   createUploadAuthorization: (
     userId: string,
     file: { mimeType: string; size: number },
@@ -59,6 +64,47 @@ export function createStorageService(config: StorageServiceConfig = {}): Storage
   const signedDownloadTtl = config.signedDownloadTtl ?? 60; // seconds
   const canViewAnyRole = config.canViewAnyRole ?? ['ADMIN', 'HR'];
   const allowedMimeTypes = config.allowedMimeTypes ?? DEFAULT_ALLOWED_TYPES;
+
+  async function uploadPdf(userId: string, file: Buffer) {
+    if (!Buffer.isBuffer(file) || file.length === 0 || file.length > maxSizeBytes) {
+      throw new StorageError(`PDF must be between 1 byte and ${maxSizeBytes / 1024 / 1024} MB`);
+    }
+    if (!file.subarray(0, 1024).includes(Buffer.from('%PDF-'))) {
+      throw new StorageError('Uploaded file is not a valid PDF');
+    }
+
+    const path = `${userId}/${randomUUID()}.pdf`;
+    const { error: uploadError } = await supabase.storage.from(bucket).upload(path, file, {
+      contentType: 'application/pdf',
+      upsert: false,
+    });
+    if (uploadError) throw new StorageError('Could not upload CV PDF', 500);
+
+    const previous = await prisma.cV.findUnique({ where: { user_id: userId } });
+    let cv;
+    try {
+      cv = await prisma.cV.upsert({
+        where: { user_id: userId },
+        create: { user_id: userId, file_url: path },
+        update: { file_url: path, uploaded_at: new Date() },
+      });
+    } catch (error) {
+      await supabase.storage.from(bucket).remove([path]);
+      throw error;
+    }
+
+    if (previous && previous.file_url !== path) {
+      await supabase.storage.from(bucket).remove([previous.file_url]);
+    }
+
+    return {
+      id: cv.id,
+      path: cv.file_url,
+      mimeType: 'application/pdf',
+      size: file.length,
+      uploadedAt: cv.uploaded_at,
+    };
+  }
 
   /**
    * Step 2: validate the request and create an upload authorization.
@@ -157,6 +203,7 @@ export function createStorageService(config: StorageServiceConfig = {}): Storage
   }
 
   return {
+    uploadPdf,
     createUploadAuthorization,
     confirmUpload,
     getDownloadUrl,

@@ -1,6 +1,7 @@
 import { createEmailWorker } from './email.worker';
+import { createLlmWorker } from './llm.worker';
 
-const workers = [createEmailWorker()];
+const workers = [createEmailWorker(), createLlmWorker()];
 
 const shutdown = async (): Promise<void> => {
   await Promise.all(workers.map((worker) => worker.close()));
