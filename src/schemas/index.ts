@@ -4,6 +4,7 @@ export * from './cv.schema';
 export * from './interview.schema';
 export * from './department.schema';
 export * from './employee.schema';
+export * from './employee-document.schema';
 export * from './hiring-request.schema';
 export * from './job-post.schema';
 export * from './pagination.schema';

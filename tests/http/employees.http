@@ -39,3 +39,63 @@ Content-Type: application/json
 
 ### Delete employee
 DELETE {{baseUrl}}/employees/{{employeeId}}
+
+### Employee: request a signed URL for a document (PDF/JPEG/PNG up to 10 MB)
+@documentType = VALID_ID
+@mimeType = application/pdf
+@fileSize = 123456
+# @name createEmployeeDocumentUploadUrl
+POST {{baseUrl}}/employees/me/documents/upload-url
+Content-Type: application/json
+
+{
+  "documentType": "{{documentType}}",
+  "mimeType": "{{mimeType}}",
+  "size": {{fileSize}}
+}
+
+### Upload directly to Supabase, not through the API server
+@employeeDocumentUploadUrl = {{createEmployeeDocumentUploadUrl.response.body.$.signedUrl}}
+@employeeDocumentPath = {{createEmployeeDocumentUploadUrl.response.body.$.path}}
+POST {{employeeDocumentUploadUrl}}
+Content-Type: {{mimeType}}
+
+< ./your-employee-document.pdf
+
+### Confirm upload; the document is marked PENDING for HR review
+POST {{baseUrl}}/employees/me/documents/confirm-upload
+Content-Type: application/json
+
+{
+  "documentType": "{{documentType}}",
+  "path": "{{employeeDocumentPath}}"
+}
+
+### Employee: view own uploaded documents and checklist status
+GET {{baseUrl}}/employees/me/documents
+
+### Employee: request a signed download URL for own document
+GET {{baseUrl}}/employees/me/documents/{{documentType}}/download
+
+### HR or ADMIN: view documents and checklist for an employee
+@employeeId = replace-with-employee-id
+GET {{baseUrl}}/employees/{{employeeId}}/documents
+
+### HR or ADMIN: mark an uploaded document complete
+PATCH {{baseUrl}}/employees/{{employeeId}}/documents/{{documentType}}/status
+Content-Type: application/json
+
+{
+  "status": "complete"
+}
+
+### HR or ADMIN: return a document to pending
+PATCH {{baseUrl}}/employees/{{employeeId}}/documents/{{documentType}}/status
+Content-Type: application/json
+
+{
+  "status": "pending"
+}
+
+### HR or ADMIN: request a signed download URL for an employee document
+GET {{baseUrl}}/employees/{{employeeId}}/documents/{{documentType}}/download

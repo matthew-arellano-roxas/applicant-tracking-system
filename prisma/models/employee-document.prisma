@@ -6,4 +6,14 @@ model EmployeeDocument{
     philhealth String?
     pagIbig String?
     tin String?
+    validIdPath String?
+    tinDocumentPath String?
+    sssDocumentPath String?
+    philhealthDocumentPath String?
+    pagIbigDocumentPath String?
+    medicalRecordPath String?
+    psaPath String?
+    birFormPath String?
+    nbiClearancePath String?
+    governmentNumberPath String?
 }

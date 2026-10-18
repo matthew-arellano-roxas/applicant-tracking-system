@@ -4,6 +4,7 @@ export * from './cv.controller';
 export * from './interview.controller';
 export * from './department.controller';
 export * from './employee.controller';
+export * from './employee-document.controller';
 export * from './user.controller';
 export * from './hiring-request.controller';
 export * from './job-post.controller';
