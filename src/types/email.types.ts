@@ -68,3 +68,21 @@ export interface ShortlistedInput {
   nextStep: string;
   ctaUrl: string;
 }
+
+export type EmailService = {
+  extractCvDataFromRawText: (rawText: string) => Promise<string>;
+};
+
+export type ExtractedData = {
+  contactInfo: ContactInfo;
+  education: Array<string>;
+  skills: Array<string>;
+  yearsOfExperience: Array<string>; // Related Field Only
+  certification: Array<string>;
+};
+
+export type ContactInfo = {
+  name: string;
+  phoneNumber: string;
+  email: string;
+};
