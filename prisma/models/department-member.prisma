@@ -5,5 +5,6 @@ model DepartmentMember {
     departmentId String
     department   Department @relation(fields: [departmentId], references: [id], onDelete: Cascade)
 
+    @@unique([departmentId, employeeId])
     @@index([departmentId, employeeId])
 }
