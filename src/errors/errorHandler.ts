@@ -1,6 +1,7 @@
 import type { ErrorRequestHandler } from 'express';
+import { ApiError } from '@/utils/ApiError';
 
-export const errorHandler: ErrorRequestHandler = (error, _req, res, next) => {
+export const errorHandler: ErrorRequestHandler = (error: unknown, _req, res, next) => {
   console.error(error);
 
   if (res.headersSent) {
@@ -9,22 +10,19 @@ export const errorHandler: ErrorRequestHandler = (error, _req, res, next) => {
   }
 
   const statusCodeValue =
-    typeof error === 'object' && error !== null && 'statusCode' in error
+    error instanceof ApiError
       ? error.statusCode
-      : typeof error === 'object' && error !== null && 'status' in error
-        ? error.status
-        : undefined;
-  const statusCode =
-    typeof statusCodeValue === 'number' && statusCodeValue >= 400 && statusCodeValue <= 599
-      ? statusCodeValue
-      : 500;
+      : typeof error === 'object' && error !== null && 'statusCode' in error
+        ? error.statusCode
+        : typeof error === 'object' && error !== null && 'status' in error
+          ? error.status
+          : undefined;
+  const statusCode = typeof statusCodeValue === 'number' && statusCodeValue >= 400 && statusCodeValue <= 599
+    ? statusCodeValue
+    : 500;
+  const message = error instanceof Error ? error.message : 'Request failed';
 
   res.status(statusCode).json({
-    error:
-      statusCode >= 500
-        ? 'Internal Server Error'
-        : error instanceof Error
-          ? error.message
-          : 'Request failed',
+    error: statusCode >= 500 ? 'Internal Server Error' : message,
   });
 };

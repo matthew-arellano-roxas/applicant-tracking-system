@@ -1,7 +1,14 @@
 import express, { Request, Response } from 'express';
 import { env } from '@/configs';
 import { errorHandler } from '@/errors';
-import { authRoute } from '@/routes';
+import {
+  authRoute,
+  departmentRoute,
+  employeeRoute,
+  hiringRequestRoute,
+  jobPostRoute,
+  userRoute,
+} from '@/routes';
 import passport from 'passport';
 import { passwordStrategy } from '@/strategies';
 import cookieParser from 'cookie-parser';
@@ -15,6 +22,11 @@ passport.use('local', passwordStrategy);
 app.use(passport.initialize());
 
 app.use(authRoute);
+app.use('/departments', departmentRoute);
+app.use('/employees', employeeRoute);
+app.use('/users', userRoute);
+app.use('/hiring-requests', hiringRequestRoute);
+app.use('/job-posts', jobPostRoute);
 app.get('/', (_req: Request, res: Response) => {
   res.json({ message: 'Hello from Express + TypeScript' });
 });

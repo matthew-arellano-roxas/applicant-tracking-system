@@ -22,3 +22,23 @@ export interface ParsedCv {
   skills: string[];
   certifications: string[];
 }
+
+// export type LlmService = {
+//   extractCVDataFromRawText: (rawText: string) => Promise<ExtractedData>;
+//   compareJobPostToApplicantCV: (jobPostCleaned: string, cv) => Promise<void>;
+// };
+
+// export type ExtractedData = {
+//   contactInfo: ContactInfo;
+//   education: string[];
+//   skills: string[];
+//   workExp: string;
+//   yearsOfExperience: number; // Related Field Only
+//   certification: string[];
+// };
+
+// export type ContactInfo = {
+//   name: string;
+//   phoneNumber: string;
+//   email: string;
+// };

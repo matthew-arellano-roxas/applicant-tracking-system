@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "concurrently -k -n api,worker -c blue,magenta \"npm:dev:api\" \"npm:dev:worker\"",
+    "dev": "npm run dev:api",
     "dev:api": "tsx watch src/index.ts",
     "dev:worker": "tsx watch src/workers/index.ts",
     "build": "tsc",
@@ -41,7 +41,8 @@
     "pdf-parse": "^2.4.5",
     "pg": "^8.23.1",
     "pino": "^10.4.0",
-    "pino-http": "^11.0.0"
+    "pino-http": "^11.0.0",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

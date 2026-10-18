@@ -1,10 +1,11 @@
 import type { RequestHandler } from 'express';
 import { verifyAccessToken } from '@/services/token.service';
+import { accessCookieSchema } from '@/schemas/auth.schema';
 
 export const requireAuth: RequestHandler = (req, res, next) => {
-  const token: unknown = req.cookies?.access_token;
+  const cookies = accessCookieSchema.safeParse(req.cookies);
 
-  if (typeof token !== 'string') {
+  if (!cookies.success) {
     res.status(401).json({
       message: 'Authentication required',
     });
@@ -12,7 +13,7 @@ export const requireAuth: RequestHandler = (req, res, next) => {
   }
 
   try {
-    const payload = verifyAccessToken(token);
+    const payload = verifyAccessToken(cookies.data.access_token);
 
     req.user = {
       id: payload.sub,
@@ -40,7 +41,7 @@ export const requireAuth: RequestHandler = (req, res, next) => {
 };
 
 export const requireRole =
-  (role: string): RequestHandler =>
+  (...roles: string[]): RequestHandler =>
   (req, res, next) => {
     if (!req.user) {
       res.status(401).json({
@@ -49,7 +50,7 @@ export const requireRole =
       return;
     }
 
-    if (req.user.role !== role) {
+    if (!roles.includes(req.user.role)) {
       res.status(403).json({
         message: 'Access denied',
       });
