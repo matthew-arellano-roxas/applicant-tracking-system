@@ -6,6 +6,7 @@ import {
   applicantRoute,
   departmentRoute,
   cvRoute,
+  interviewRoute,
   employeeRoute,
   hiringRequestRoute,
   jobPostRoute,
@@ -28,6 +29,7 @@ app.use(passport.initialize());
 app.use(authRoute);
 app.use('/applications', applicantRoute);
 app.use('/cvs', cvRoute);
+app.use('/interviews', interviewRoute);
 app.use('/departments', departmentRoute);
 app.use('/employees', employeeRoute);
 app.use('/users', userRoute);

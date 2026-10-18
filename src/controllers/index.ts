@@ -1,6 +1,7 @@
 export * from './auth.controller';
 export * from './applicant.controller';
 export * from './cv.controller';
+export * from './interview.controller';
 export * from './department.controller';
 export * from './employee.controller';
 export * from './user.controller';

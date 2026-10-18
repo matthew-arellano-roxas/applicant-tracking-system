@@ -17,8 +17,8 @@
   >
     <!-- Preheader (hidden preview text) -->
     <div style="display: none; max-height: 0; overflow: hidden; opacity: 0">
-      You're invited to a {{interviewStage}} interview for {{jobTitle}} on {{interviewDate}} at
-      {{interviewTime}}.
+      {{#if isInterviewer}}You are assigned to conduct{{else}}You're invited to{{/if}} a
+      {{interviewStage}} interview for {{jobTitle}} on {{interviewDate}} at {{interviewTime}}.
     </div>
 
     <table
@@ -71,20 +71,24 @@
             <tr>
               <td style="padding: 36px 32px 12px 32px; color: #1f2937">
                 <h2 style="margin: 0 0 12px 0; font-size: 20px; color: #111827">
-                  Interview invitation
+                  {{#if isInterviewer}}Interview assignment{{else}}Interview invitation{{/if}}
                 </h2>
                 <p style="margin: 0 0 8px 0; font-size: 15px; line-height: 1.6; color: #374151">
                   Hi {{name}},
                 </p>
                 <p style="margin: 0; font-size: 15px; line-height: 1.6; color: #374151">
-                  Thank you for applying for the
+                  {{#if isInterviewer}} You have been assigned to interview
+                  <strong style="color: #111827">{{applicantName}}</strong>
+                  for the <strong style="color: #111827">{{jobTitle}}</strong> position. The details
+                  are below. {{else}} Thank you for applying for the
                   <strong style="color: #111827">{{jobTitle}}</strong> position. We would like to
-                  invite you to an interview. The details are below.
+                  invite you to an interview. The details are below. {{/if}}
                 </p>
               </td>
             </tr>
 
             <!-- Interview details -->
+            {{#if ctaUrl}}
             <tr>
               <td style="padding: 20px 32px">
                 <table
@@ -193,6 +197,7 @@
                 </table>
               </td>
             </tr>
+            {{/if}}
 
             <!-- Instructions (only shown when provided) -->
             {{#if interviewInstructions}}
@@ -249,8 +254,9 @@
                     text-align: center;
                   "
                 >
-                  If you can't make it, please reply to this email as soon as possible so we can
-                  reschedule.
+                  {{#if isInterviewer}} Please contact the recruitment team if you need to make
+                  changes to this interview. {{else}} If you can't make it, please reply to this
+                  email as soon as possible so we can reschedule. {{/if}}
                 </p>
               </td>
             </tr>

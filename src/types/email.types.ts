@@ -22,6 +22,8 @@ export type EmailContent = EmailData<OtpEmailTemplateData>;
 
 export interface InterviewEmailTemplateData {
   name: string;
+  isInterviewer: boolean;
+  applicantName: string;
   jobTitle: string;
   interviewStage: string;
   interviewDate: string;
@@ -36,6 +38,8 @@ export interface InterviewEmailTemplateData {
 export interface InterviewInvitationInput {
   to: string;
   name: string;
+  recipientRole?: 'APPLICANT' | 'INTERVIEWER';
+  applicantName?: string;
   jobTitle: string;
   stage: string;
   type: string;

@@ -1,6 +1,7 @@
 export * from './auth.schema';
 export * from './applicant.schema';
 export * from './cv.schema';
+export * from './interview.schema';
 export * from './department.schema';
 export * from './employee.schema';
 export * from './hiring-request.schema';

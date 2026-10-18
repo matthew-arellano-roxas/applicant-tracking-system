@@ -1,0 +1,42 @@
+@baseUrl = http://localhost:3000
+@applicationId = replace-with-application-id
+@interviewerId = replace-with-interviewer-user-id
+@interviewId = {{scheduleInterview.response.body.$.interview.id}}
+@page = 1
+@limit = 10
+
+### HR or ADMIN: schedule an interview; email notifications are queued for the applicant and interviewer
+# @name scheduleInterview
+POST {{baseUrl}}/interviews
+Content-Type: application/json
+
+{
+  "applicantId": "{{applicationId}}",
+  "interviewerId": "{{interviewerId}}",
+  "stage": "HR_SCREENING",
+  "date": "2026-10-20T10:00:00+08:00",
+  "type": "ONLINE",
+  "location": "Video conference",
+  "instructions": "Please join a few minutes early."
+}
+
+### HR or ADMIN: list and filter interviews
+GET {{baseUrl}}/interviews?page={{page}}&limit={{limit}}&status=SCHEDULED
+
+### Applicant or assigned EMPLOYEE/interviewer: list own interviews
+GET {{baseUrl}}/interviews/me?page={{page}}&limit={{limit}}
+
+### Applicant, assigned EMPLOYEE/interviewer, HR, or ADMIN: get interview details
+GET {{baseUrl}}/interviews/{{interviewId}}
+
+### HR or ADMIN: update interview details
+PATCH {{baseUrl}}/interviews/{{interviewId}}
+Content-Type: application/json
+
+{
+  "date": "2026-10-21T10:00:00+08:00",
+  "instructions": "Please join 10 minutes early."
+}
+
+### HR or ADMIN: cancel interview
+PATCH {{baseUrl}}/interviews/{{interviewId}}/cancel
