@@ -10,7 +10,7 @@ POST {{baseUrl}}/departments
 Content-Type: application/json
 
 {
-  "name": "Finance"
+  "name": "Psychology"
 }
 
 ### Use created department ID in this file
