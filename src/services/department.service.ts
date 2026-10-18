@@ -1,74 +1,149 @@
-import { prisma } from '@/configs'; // adjust to wherever your shared PrismaClient lives
-import type { CreateDepartmentInput, UpdateDepartmentInput } from '@/types';
+import { PrismaClient } from '@/generated/prisma/client';
+import { ApiError } from '@/utils/ApiError';
 
-async function assertEmployeeExists(employeeId: string) {
-  const employee = await prisma.employee.findUnique({ where: { id: employeeId } });
-  if (!employee) throw new Error('Employee not found');
-}
+export type Department = {
+  id: string;
+  name: string;
+  departmentHeadId: string | null;
+  createdAt: Date;
+};
 
-async function getDepartmentById(id: string) {
-  const department = await prisma.department.findUnique({ where: { id } });
-  if (!department) throw new Error('Department not found');
-  return department;
-}
+export type DepartmentMember = {
+  id: string;
+  employeeId: string;
+  departmentId: string;
+};
 
-async function listDepartments() {
-  return prisma.department.findMany({ orderBy: { name: 'asc' } });
-}
+export type CreateDepartmentInput = {
+  name: string;
+  departmentHeadId?: string | null;
+};
 
-async function createDepartment(input: CreateDepartmentInput) {
-  const headId = input.departmentHeadId ?? null;
-  if (headId) await assertEmployeeExists(headId);
+export type UpdateDepartmentInput = Partial<CreateDepartmentInput>;
 
-  return prisma.department.create({
-    data: { name: input.name, departmentHeadId: headId },
-  });
-}
+export type DepartmentService = {
+  getDepartmentById: (id: string) => Promise<Department>;
+  listDepartments: () => Promise<Department[]>;
+  createDepartment: (input: CreateDepartmentInput) => Promise<Department>;
+  updateDepartment: (id: string, input: UpdateDepartmentInput) => Promise<Department>;
+  deleteDepartment: (id: string) => Promise<Department>;
+  listMembers: (departmentId: string) => Promise<DepartmentMember[]>;
+  addMember: (departmentId: string, employeeId: string) => Promise<DepartmentMember>;
+  removeMember: (departmentId: string, employeeId: string) => Promise<{ count: number }>;
+  assignDepartmentHead: (departmentId: string, employeeId: string) => Promise<Department>;
+  removeDepartmentHead: (departmentId: string) => Promise<Department>;
+};
 
-async function updateDepartment(id: string, input: UpdateDepartmentInput) {
-  await getDepartmentById(id);
-  if (input.departmentHeadId) await assertEmployeeExists(input.departmentHeadId);
+export const createDepartmentService = (prisma: PrismaClient): DepartmentService => {
+  async function assertEmployeeExists(employeeId: string) {
+    const employee = await prisma.employee.findUnique({ where: { id: employeeId } });
+    if (!employee) throw ApiError.notFound('Employee not found');
+  }
 
-  return prisma.department.update({ where: { id }, data: input });
-}
+  async function getDepartmentById(id: string): Promise<Department> {
+    const department = await prisma.department.findUnique({ where: { id } });
+    if (!department) throw ApiError.notFound('Department not found');
+    return department;
+  }
 
-async function deleteDepartment(id: string) {
-  await getDepartmentById(id);
+  async function listDepartments(): Promise<Department[]> {
+    return prisma.department.findMany({ orderBy: { name: 'asc' } });
+  }
 
-  const requestCount = await prisma.hiringRequest.count({ where: { departmentId: id } });
-  if (requestCount > 0) throw new Error('Cannot delete a department with hiring requests');
+  async function createDepartment(input: CreateDepartmentInput): Promise<Department> {
+    const headId = input.departmentHeadId ?? null;
+    if (headId) await assertEmployeeExists(headId);
 
-  return prisma.department.delete({ where: { id } });
-}
+    return prisma.department.create({
+      data: { name: input.name, departmentHeadId: headId },
+    });
+  }
 
-async function listMembers(departmentId: string) {
-  await getDepartmentById(departmentId);
-  return prisma.departmentMember.findMany({ where: { departmentId } });
-}
+  async function updateDepartment(id: string, input: UpdateDepartmentInput): Promise<Department> {
+    await getDepartmentById(id);
+    if (input.departmentHeadId) await assertEmployeeExists(input.departmentHeadId);
 
-async function addMember(departmentId: string, employeeId: string) {
-  await getDepartmentById(departmentId);
-  await assertEmployeeExists(employeeId);
+    return prisma.department.update({ where: { id }, data: input });
+  }
 
-  const existing = await prisma.departmentMember.findFirst({ where: { departmentId, employeeId } });
-  if (existing) throw new Error('Employee is already a member');
+  async function deleteDepartment(id: string): Promise<Department> {
+    await getDepartmentById(id);
 
-  return prisma.departmentMember.create({ data: { departmentId, employeeId } });
-}
+    const requestCount = await prisma.hiringRequest.count({ where: { departmentId: id } });
+    if (requestCount > 0) throw ApiError.conflict('Cannot delete a department with hiring requests');
 
-async function removeMember(departmentId: string, employeeId: string) {
-  const result = await prisma.departmentMember.deleteMany({ where: { departmentId, employeeId } });
-  if (result.count === 0) throw new Error('Membership not found');
-  return result;
-}
+    return prisma.department.delete({ where: { id } });
+  }
 
-export const departmentService = {
-  getDepartmentById,
-  listDepartments,
-  createDepartment,
-  updateDepartment,
-  deleteDepartment,
-  listMembers,
-  addMember,
-  removeMember,
+  async function listMembers(departmentId: string): Promise<DepartmentMember[]> {
+    await getDepartmentById(departmentId);
+    return prisma.departmentMember.findMany({ where: { departmentId } });
+  }
+
+  async function addMember(departmentId: string, employeeId: string): Promise<DepartmentMember> {
+    await getDepartmentById(departmentId);
+    await assertEmployeeExists(employeeId);
+
+    const existing = await prisma.departmentMember.findFirst({
+      where: { departmentId, employeeId },
+    });
+    if (existing) throw ApiError.conflict('Employee is already a member');
+
+    return prisma.departmentMember.create({ data: { departmentId, employeeId } });
+  }
+
+  async function removeMember(
+    departmentId: string,
+    employeeId: string,
+  ): Promise<{ count: number }> {
+    const result = await prisma.departmentMember.deleteMany({
+      where: { departmentId, employeeId },
+    });
+    if (result.count === 0) throw ApiError.notFound('Membership not found');
+    return result;
+  }
+
+  async function assignDepartmentHead(
+    departmentId: string,
+    employeeId: string,
+  ): Promise<Department> {
+    await getDepartmentById(departmentId);
+    await assertEmployeeExists(employeeId);
+
+    return prisma.$transaction(async (tx) => {
+      // the head should also be a member of the department
+      await tx.departmentMember.upsert({
+        where: { departmentId_employeeId: { departmentId, employeeId } },
+        update: {},
+        create: { departmentId, employeeId },
+      });
+
+      return tx.department.update({
+        where: { id: departmentId },
+        data: { departmentHeadId: employeeId },
+      });
+    });
+  }
+
+  async function removeDepartmentHead(departmentId: string): Promise<Department> {
+    await getDepartmentById(departmentId);
+
+    return prisma.department.update({
+      where: { id: departmentId },
+      data: { departmentHeadId: null },
+    });
+  }
+
+  return {
+    getDepartmentById,
+    listDepartments,
+    createDepartment,
+    updateDepartment,
+    deleteDepartment,
+    listMembers,
+    addMember,
+    removeMember,
+    assignDepartmentHead,
+    removeDepartmentHead,
+  };
 };
