@@ -25,15 +25,10 @@ export interface StorageServiceConfig {
 }
 
 export interface StorageService {
-  uploadPdf: (
-    userId: string,
-    file: Buffer,
-  ) => Promise<{ id: string; path: string; mimeType: string; size: number; uploadedAt: Date }>;
-
   createUploadAuthorization: (
     userId: string,
     file: { mimeType: string; size: number },
-  ) => Promise<{ bucket: string; path: string; token: string; signedUrl: string }>;
+  ) => Promise<{ bucket: string; path: string; signedUrl: string }>;
 
   confirmUpload: (
     userId: string,
@@ -65,47 +60,6 @@ export function createStorageService(config: StorageServiceConfig = {}): Storage
   const canViewAnyRole = config.canViewAnyRole ?? ['ADMIN', 'HR'];
   const allowedMimeTypes = config.allowedMimeTypes ?? DEFAULT_ALLOWED_TYPES;
 
-  async function uploadPdf(userId: string, file: Buffer) {
-    if (!Buffer.isBuffer(file) || file.length === 0 || file.length > maxSizeBytes) {
-      throw new StorageError(`PDF must be between 1 byte and ${maxSizeBytes / 1024 / 1024} MB`);
-    }
-    if (!file.subarray(0, 1024).includes(Buffer.from('%PDF-'))) {
-      throw new StorageError('Uploaded file is not a valid PDF');
-    }
-
-    const path = `${userId}/${randomUUID()}.pdf`;
-    const { error: uploadError } = await supabase.storage.from(bucket).upload(path, file, {
-      contentType: 'application/pdf',
-      upsert: false,
-    });
-    if (uploadError) throw new StorageError('Could not upload CV PDF', 500);
-
-    const previous = await prisma.cV.findUnique({ where: { user_id: userId } });
-    let cv;
-    try {
-      cv = await prisma.cV.upsert({
-        where: { user_id: userId },
-        create: { user_id: userId, file_url: path },
-        update: { file_url: path, uploaded_at: new Date() },
-      });
-    } catch (error) {
-      await supabase.storage.from(bucket).remove([path]);
-      throw error;
-    }
-
-    if (previous && previous.file_url !== path) {
-      await supabase.storage.from(bucket).remove([previous.file_url]);
-    }
-
-    return {
-      id: cv.id,
-      path: cv.file_url,
-      mimeType: 'application/pdf',
-      size: file.length,
-      uploadedAt: cv.uploaded_at,
-    };
-  }
-
   /**
    * Step 2: validate the request and create an upload authorization.
    * The frontend then calls:
@@ -127,7 +81,7 @@ export function createStorageService(config: StorageServiceConfig = {}): Storage
     const { data, error } = await supabase.storage.from(bucket).createSignedUploadUrl(path);
     if (error || !data) throw new StorageError('Could not create upload authorization', 500);
 
-    return { bucket, path: data.path, token: data.token, signedUrl: data.signedUrl };
+    return { bucket, path: data.path, signedUrl: data.signedUrl };
   }
 
   /**
@@ -138,7 +92,10 @@ export function createStorageService(config: StorageServiceConfig = {}): Storage
     // Prevent claiming another user's file
     if (!path.startsWith(`${userId}/`)) throw new StorageError('Invalid file path', 403);
 
-    const [folder, fileName] = path.split('/');
+    const [folder, fileName, ...extraPathParts] = path.split('/');
+    if (!folder || !fileName || extraPathParts.length > 0) {
+      throw new StorageError('Invalid file path');
+    }
     const { data: objects, error } = await supabase.storage
       .from(bucket)
       .list(folder, { search: fileName, limit: 1 });
@@ -149,7 +106,7 @@ export function createStorageService(config: StorageServiceConfig = {}): Storage
 
     const size = Number(object.metadata?.size ?? 0);
     const mimeType = String(object.metadata?.mimetype ?? '');
-    if (!allowedMimeTypes[mimeType] || size > maxSizeBytes) {
+    if (!allowedMimeTypes[mimeType] || size <= 0 || size > maxSizeBytes) {
       // Uploaded something that doesn't meet the rules: remove it
       await supabase.storage.from(bucket).remove([path]);
       throw new StorageError('Uploaded file is not valid');
@@ -203,7 +160,6 @@ export function createStorageService(config: StorageServiceConfig = {}): Storage
   }
 
   return {
-    uploadPdf,
     createUploadAuthorization,
     confirmUpload,
     getDownloadUrl,

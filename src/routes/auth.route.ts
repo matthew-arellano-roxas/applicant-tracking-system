@@ -17,15 +17,19 @@ authRoute.post(
   '/login',
   validateRequest(loginBodySchema),
   (req, res, next) =>
-    passport.authenticate('local', { session: false }, (error, user) => {
-      if (error) return next(error);
-      if (!user) {
-        return res.status(401).json({ message: 'Invalid email or password' });
-      }
+    passport.authenticate(
+      'local',
+      { session: false },
+      (error: unknown, user: Express.User | false | null | undefined) => {
+        if (error) return next(error);
+        if (!user) {
+          return res.status(401).json({ message: 'Invalid email or password' });
+        }
 
-      req.user = user;
-      return next();
-    })(req, res, next),
+        req.user = user;
+        return next();
+      },
+    )(req, res, next),
   login,
 );
 
