@@ -19,6 +19,7 @@ model User {
     applicants     Applicant[]
     cvs            CV?
     interviews     Interview[]
+    interviewEvaluations InterviewEvaluation[]
 
     @@index([role])
 }

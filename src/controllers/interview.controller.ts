@@ -2,10 +2,13 @@ import type { RequestHandler } from 'express';
 import type { z } from 'zod';
 import { prisma } from '@/configs';
 import { UserRole } from '@/constants';
+import { getInterviewRubric } from '@/constants/interview-rubric.constant';
 import {
   createInterviewBodySchema,
+  interviewEvaluationBodySchema,
   interviewIdParamsSchema,
   interviewListQuerySchema,
+  interviewRubricQuerySchema,
   myInterviewListQuerySchema,
   updateInterviewBodySchema,
 } from '@/schemas/interview.schema';
@@ -16,6 +19,8 @@ import { asyncHandler } from '@/utils/asyncHandler';
 const interviews = createInterviewService(prisma);
 const canManageInterviews = (role: string): boolean =>
   role === UserRole.Admin || role === UserRole.Hr;
+const canConductInterviews = (role: string): boolean =>
+  role === UserRole.Employee || role === UserRole.DepartmentHead || role === UserRole.Dean;
 
 export const createInterview: RequestHandler = asyncHandler(async (req, res) => {
   const body = req.body as z.output<typeof createInterviewBodySchema>;
@@ -32,16 +37,25 @@ export const listInterviews: RequestHandler = asyncHandler(async (req, res) => {
   return res.status(200).json({ interviews: result.items, pagination: result.pagination });
 });
 
+export const getInterviewRubrics: RequestHandler = asyncHandler(async (req, res) => {
+  const query = req.query as unknown as z.output<typeof interviewRubricQuerySchema>;
+  if (query.stage === 'DEMO_TEACHING' && query.roleType === 'NON_TEACHING') {
+    throw ApiError.badRequest('DEMO_TEACHING rubric is only available for teaching positions');
+  }
+  return res.status(200).json(getInterviewRubric(query.stage, query.roleType));
+});
+
 export const listMyInterviews: RequestHandler = asyncHandler(async (req, res) => {
   if (!req.user) throw ApiError.unauthorized('Authentication required');
   const query = req.query as unknown as z.output<typeof myInterviewListQuerySchema>;
 
   if (req.user.role === UserRole.Applicant) {
     const result = await interviews.list({ ...query, applicantUserId: req.user.id });
-    return res.status(200).json({ interviews: result.items, pagination: result.pagination });
+    const ownInterviews = result.items.map(({ notes: _notes, ...interview }) => interview);
+    return res.status(200).json({ interviews: ownInterviews, pagination: result.pagination });
   }
 
-  if (req.user.role === UserRole.Employee) {
+  if (canConductInterviews(req.user.role)) {
     const result = await interviews.list({ ...query, interviewerId: req.user.id });
     return res.status(200).json({ interviews: result.items, pagination: result.pagination });
   }
@@ -61,18 +75,65 @@ export const getInterview: RequestHandler = asyncHandler(async (req, res) => {
     throw ApiError.forbidden('You cannot view this interview');
   }
 
+  if (isOwner && !canManageInterviews(req.user.role)) {
+    const { notes: _notes, ...applicantInterview } = interview;
+    return res.status(200).json({ interview: applicantInterview });
+  }
   return res.status(200).json({ interview });
 });
 
 export const updateInterview: RequestHandler = asyncHandler(async (req, res) => {
   const { id } = req.params as z.output<typeof interviewIdParamsSchema>;
   const body = req.body as z.output<typeof updateInterviewBodySchema>;
-  const interview = await interviews.update(id, body);
-  return res.status(200).json({ interview });
+  const result = await interviews.update(id, body);
+  return res.status(200).json(result);
 });
 
 export const cancelInterview: RequestHandler = asyncHandler(async (req, res) => {
   const { id } = req.params as z.output<typeof interviewIdParamsSchema>;
-  const interview = await interviews.cancel(id);
-  return res.status(200).json({ interview });
+  const result = await interviews.cancel(id);
+  return res.status(200).json(result);
+});
+
+export const completeInterview: RequestHandler = asyncHandler(async (req, res) => {
+  if (!req.user) throw ApiError.unauthorized('Authentication required');
+  const { id } = req.params as z.output<typeof interviewIdParamsSchema>;
+  const interview = await interviews.get(id);
+  if (!canManageInterviews(req.user.role) && interview.interviewerId !== req.user.id) {
+    throw ApiError.forbidden(
+      'Only HR, admins, or the assigned interviewer can complete this interview',
+    );
+  }
+
+  const result = await interviews.update(id, { status: 'COMPLETED' });
+  return res.status(200).json({ interview: result.interview });
+});
+
+export const listInterviewEvaluations: RequestHandler = asyncHandler(async (req, res) => {
+  if (!req.user) throw ApiError.unauthorized('Authentication required');
+  const { id } = req.params as z.output<typeof interviewIdParamsSchema>;
+  const interview = await interviews.get(id);
+  const isAssignedInterviewer = interview.interviewerId === req.user.id;
+  if (!canManageInterviews(req.user.role) && !isAssignedInterviewer) {
+    throw ApiError.forbidden('Only HR, admins, and the assigned interviewer can view evaluations');
+  }
+
+  const evaluations = await interviews.listEvaluations(id);
+  return res.status(200).json({ evaluations });
+});
+
+export const submitInterviewEvaluation: RequestHandler = asyncHandler(async (req, res) => {
+  if (!req.user) throw ApiError.unauthorized('Authentication required');
+  const { id } = req.params as z.output<typeof interviewIdParamsSchema>;
+  const body = req.body as z.output<typeof interviewEvaluationBodySchema>;
+  const interview = await interviews.get(id);
+  const isAssignedInterviewer = interview.interviewerId === req.user.id;
+  if (!canManageInterviews(req.user.role) && !isAssignedInterviewer) {
+    throw ApiError.forbidden(
+      'Only HR, admins, and the assigned interviewer can submit evaluations',
+    );
+  }
+
+  const evaluation = await interviews.submitEvaluation(id, req.user.id, body);
+  return res.status(201).json({ evaluation });
 });
