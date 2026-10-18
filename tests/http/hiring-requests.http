@@ -1,0 +1,41 @@
+@baseUrl = http://localhost:3000
+@departmentId = replace-with-department-id
+@campusId = 1
+
+### Search hiring requests
+GET {{baseUrl}}/hiring-requests?search=engineer&status=APPROVED
+
+### Create hiring request
+# @name createHiringRequest
+POST {{baseUrl}}/hiring-requests
+Content-Type: application/json
+
+{
+  "position": "Software Engineer",
+  "employmentType": "FULL_TIME",
+  "isTeaching": false,
+  "departmentId": "{{departmentId}}",
+  "campusId": {{campusId}}
+}
+
+### Use created hiring request ID in this file
+@hiringRequestId = {{createHiringRequest.response.body.$.hiringRequest.id}}
+
+### Get hiring request
+GET {{baseUrl}}/hiring-requests/{{hiringRequestId}}
+
+### Update hiring request draft
+PATCH {{baseUrl}}/hiring-requests/{{hiringRequestId}}
+Content-Type: application/json
+
+{
+  "position": "Senior Software Engineer"
+}
+
+### Change hiring request status
+PATCH {{baseUrl}}/hiring-requests/{{hiringRequestId}}/status
+Content-Type: application/json
+
+{
+  "status": "APPROVED"
+}

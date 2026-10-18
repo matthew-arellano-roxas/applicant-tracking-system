@@ -12,8 +12,10 @@ import {
 import passport from 'passport';
 import { passwordStrategy } from '@/strategies';
 import cookieParser from 'cookie-parser';
+import { requestLogger } from '@/middlewares/request-logger.middleware';
 const app = express();
 
+app.use(requestLogger);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());

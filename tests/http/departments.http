@@ -1,0 +1,56 @@
+@baseUrl = http://localhost:3000
+@employeeId = replace-with-employee-id
+
+### List departments
+GET {{baseUrl}}/departments
+
+### Create department
+# @name createDepartment
+POST {{baseUrl}}/departments
+Content-Type: application/json
+
+{
+  "name": "Finance"
+}
+
+### Use created department ID in this file
+@departmentId = {{createDepartment.response.body.$.department.id}}
+
+### Get department
+GET {{baseUrl}}/departments/{{departmentId}}
+
+### Update department
+PATCH {{baseUrl}}/departments/{{departmentId}}
+Content-Type: application/json
+
+{
+  "name": "Finance and Accounting"
+}
+
+### Assign department head
+PATCH {{baseUrl}}/departments/{{departmentId}}/head
+Content-Type: application/json
+
+{
+  "employeeId": "{{employeeId}}"
+}
+
+### Remove department head
+DELETE {{baseUrl}}/departments/{{departmentId}}/head
+
+### List department members
+GET {{baseUrl}}/departments/{{departmentId}}/members
+
+### Add department member
+POST {{baseUrl}}/departments/{{departmentId}}/members
+Content-Type: application/json
+
+{
+  "employeeId": "{{employeeId}}"
+}
+
+### Remove department member
+DELETE {{baseUrl}}/departments/{{departmentId}}/members/{{employeeId}}
+
+### Delete department
+DELETE {{baseUrl}}/departments/{{departmentId}}

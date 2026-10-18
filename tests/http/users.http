@@ -1,0 +1,10 @@
+@baseUrl = http://localhost:3000
+@userId = replace-with-user-id
+
+### Assign user role (ADMIN only)
+PATCH {{baseUrl}}/users/{{userId}}/role
+Content-Type: application/json
+
+{
+  "role": "EMPLOYEE"
+}

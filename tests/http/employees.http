@@ -1,0 +1,36 @@
+@baseUrl = http://localhost:3000
+@userId = replace-with-user-id
+@departmentId = replace-with-department-id
+
+### List employees
+GET {{baseUrl}}/employees
+
+### Create employee
+# @name createEmployee
+POST {{baseUrl}}/employees
+Content-Type: application/json
+
+{
+  "userId": "{{userId}}",
+  "position": "HR Manager",
+  "employmentType": "FULL_TIME",
+  "isTeaching": false,
+  "departmentIds": ["{{departmentId}}"]
+}
+
+### Use created employee ID in this file
+@employeeId = {{createEmployee.response.body.$.employee.id}}
+
+### Get employee
+GET {{baseUrl}}/employees/{{employeeId}}
+
+### Update employee
+PATCH {{baseUrl}}/employees/{{employeeId}}
+Content-Type: application/json
+
+{
+  "position": "Senior HR Manager"
+}
+
+### Delete employee
+DELETE {{baseUrl}}/employees/{{employeeId}}

@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "npm run dev:api",
+    "dev": "concurrently -k -n api,worker -c blue,magenta \"npm:dev:api\" \"npm:dev:worker\"",
     "dev:api": "tsx watch src/index.ts",
     "dev:worker": "tsx watch src/workers/index.ts",
     "build": "tsc",
