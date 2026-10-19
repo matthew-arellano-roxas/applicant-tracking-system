@@ -11,6 +11,7 @@
 
 ## Table of Contents
 
+- [Development Setup](#development-setup)
 - [Overview](#overview)
 - [Problem Statement](#problem-statement)
 - [Objectives](#objectives)
@@ -21,6 +22,64 @@
 - [Project Documentation](#project-documentation)
 - [Recommendations and Future Improvements](#recommendations-and-future-improvements)
 - [Development Team](#development-team)
+
+---
+
+## Development Setup
+
+This repository uses pnpm workspaces for the API, web app, and shared TypeScript contracts.
+Run package commands from the repository root so pnpm links `@ats/shared-types` into both apps.
+
+```sh
+pnpm install
+pnpm dev          # Run the API and web app
+pnpm dev:api      # Run only the API
+pnpm dev:web      # Run only the web app
+pnpm build        # Build all workspace packages with a build script
+```
+
+Use pnpm for dependency changes too. For example, `pnpm --filter @ats/web add axios` adds a
+web-only dependency. The old `package-lock.json` files inside the moved apps are not used by the
+workspace; `pnpm install` at the root creates and updates the single `pnpm-lock.yaml`.
+
+Add cross app contracts to `packages/shared-types/src/index.ts`, then import them from either app:
+
+```ts
+import type { ApiResponse } from '@ats/shared-types';
+```
+
+Request validation schemas are shared too. Import one from the package root or the `schemas` subpath,
+and derive its TypeScript type with Zod when needed:
+
+```ts
+import { createApplicationBodySchema } from '@ats/shared-types/schemas';
+import type { z } from 'zod';
+
+export type CreateApplicationInput = z.infer<typeof createApplicationBodySchema>;
+const result = createApplicationBodySchema.safeParse({ jobPostId: 'job-123' });
+```
+
+The shared package is built before the root dev commands and as a dependency of workspace builds.
+API schema imports under `@/schemas/*` continue to work through re-export files.
+
+Add dependencies to a specific workspace with `pnpm --filter @ats/api add <package>` or
+`pnpm --filter @ats/web add <package>`.
+
+### Web UI conventions
+
+- Use React Router Data Mode for application routes. Keep shared navigation and page chrome in the
+  layout route, and render nested pages through its `<Outlet />`.
+- Follow the shadcn preset configured in `apps/web/components.json` (`base-luma`, `mist`, and the
+  `lucide` icon library). Use the existing CSS theme variables and semantic Tailwind classes such
+  as `bg-background`, `text-foreground`, `bg-card`, `border-border`, and `text-muted-foreground`.
+- Build prebuilt interface elements with shadcn/ui components and use `lucide-react` for icons.
+  Keep spacing, colors, borders, and radii consistent with the preset; avoid introducing one-off
+  colors or a separate visual system for individual pages.
+- Use Tailwind CSS for page layout and component styling.
+- Use Zustand for client state shared across routes or components, such as the authenticated user and
+  session status. Keep state used by only one page or component local, and organize store state and
+  actions by domain. Keep API requests and reusable behavior in hooks or service modules so UI
+  components focus on rendering and event wiring.
 
 ---
 

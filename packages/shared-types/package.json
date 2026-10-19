@@ -1,0 +1,44 @@
+{
+  "name": "@ats/shared-types",
+  "version": "0.0.0",
+  "private": true,
+  "type": "commonjs",
+  "sideEffects": false,
+  "scripts": {
+    "build": "tsc -p tsconfig.types.json && tsc -p tsconfig.cjs.json && tsc -p tsconfig.esm.json && node -e \"require('node:fs').writeFileSync('dist/esm/package.json', JSON.stringify({ type: 'module' }))\""
+  },
+  "dependencies": {
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "typescript": "^6.0.3"
+  },
+  "types": "./dist/types/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/types/index.d.ts",
+      "import": "./dist/esm/index.js",
+      "require": "./dist/cjs/index.js"
+    },
+    "./schemas": {
+      "types": "./dist/types/schemas/index.d.ts",
+      "import": "./dist/esm/schemas/index.js",
+      "require": "./dist/cjs/schemas/index.js"
+    },
+    "./schemas/*": {
+      "types": "./dist/types/schemas/*.d.ts",
+      "import": "./dist/esm/schemas/*.js",
+      "require": "./dist/cjs/schemas/*.js"
+    },
+    "./constants": {
+      "types": "./dist/types/constants/index.d.ts",
+      "import": "./dist/esm/constants/index.js",
+      "require": "./dist/cjs/constants/index.js"
+    },
+    "./constants/*": {
+      "types": "./dist/types/constants/*.d.ts",
+      "import": "./dist/esm/constants/*.js",
+      "require": "./dist/cjs/constants/*.js"
+    }
+  }
+}
