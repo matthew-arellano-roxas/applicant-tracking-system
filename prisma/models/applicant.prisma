@@ -1,18 +1,18 @@
-model Applicant{
-    id String @id @default(cuid())
-    userId String
-    user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-    jobPostId String
-    jobPost JobPost @relation(fields: [jobPostId], references: [id], onDelete: Cascade)
-    status String
-    scoreStatus String @default("PENDING")
-    applyDate DateTime @default(now()) @db.Timestamptz(3)
+model Applicant {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  jobPostId   String
+  jobPost     JobPost  @relation(fields: [jobPostId], references: [id], onDelete: Cascade)
+  status      String
+  scoreStatus String   @default("PENDING")
+  applyDate   DateTime @default(now()) @db.Timestamptz(3)
 
-    scores ApplicantScore?
-    interviews Interview[]
+  scores     ApplicantScore?
+  interviews Interview[]
 
-    @@index([jobPostId, status])
-    @@index([userId])
-    @@index([status, applyDate])
-    @@index([scoreStatus])
+  @@index([jobPostId, status])
+  @@index([userId])
+  @@index([status, applyDate])
+  @@index([scoreStatus])
 }

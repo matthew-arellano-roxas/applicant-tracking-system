@@ -1,7 +1,7 @@
-model CV{
-    id          String     @id @default(cuid())
-    user_id     String     @unique
-    file_url    String
-    uploaded_at DateTime   @default(now()) @db.Timestamptz(3)
-    user        User       @relation(fields: [user_id], references: [id], onDelete: Cascade)
+model CV {
+  id          String   @id @default(cuid())
+  user_id     String   @unique
+  file_url    String
+  uploaded_at DateTime @default(now()) @db.Timestamptz(3)
+  user        User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
 }

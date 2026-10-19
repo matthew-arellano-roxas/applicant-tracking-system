@@ -1,14 +1,14 @@
-model ApplicantScore{
-    id String @id @default(cuid())
-    applicantId String @unique
-    applicant Applicant @relation(fields: [applicantId], references: [id], onDelete: Cascade)
-    educationalBackground Int
-    workExperience Int
-    skills Int
-    certification Int
-    totalScore Int
-    createdAt DateTime @default(now()) @db.Timestamptz(3)
+model ApplicantScore {
+  id                    String    @id @default(cuid())
+  applicantId           String    @unique
+  applicant             Applicant @relation(fields: [applicantId], references: [id], onDelete: Cascade)
+  educationalBackground Int
+  workExperience        Int
+  skills                Int
+  certification         Int
+  totalScore            Int
+  createdAt             DateTime  @default(now()) @db.Timestamptz(3)
 
-    @@index([totalScore])
-    @@index([createdAt])
+  @@index([totalScore])
+  @@index([createdAt])
 }

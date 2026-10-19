@@ -1,12 +1,12 @@
 model Department {
-    id               String    @id @default(cuid())
-    name             String
-    departmentHeadId String?
-    departmentHead   Employee? @relation(fields: [departmentHeadId], references: [id], onDelete: SetNull)
-    createdAt        DateTime  @default(now()) @db.Timestamptz(3)
+  id               String    @id @default(cuid())
+  name             String
+  departmentHeadId String?
+  departmentHead   Employee? @relation(fields: [departmentHeadId], references: [id], onDelete: SetNull)
+  createdAt        DateTime  @default(now()) @db.Timestamptz(3)
 
-    hiringRequests    HiringRequest[]
-    departmentMembers DepartmentMember[]
+  hiringRequests    HiringRequest[]
+  departmentMembers DepartmentMember[]
 
-    @@index([departmentHeadId])
+  @@index([departmentHeadId])
 }
