@@ -1,6 +1,6 @@
 import { transporter } from '@/configs/mail-transporter';
 import { env } from '@/configs/env';
-import { COMPANY } from '@/configs/company';
+import { COMPANY } from '@/configs/school';
 import { renderTemplate } from '@/utils/renderTemplate';
 import { humanizeEnum } from '@/utils/humanizeEnum';
 import { formatDate, formatTime } from '@/utils/formatDateTime';
@@ -35,17 +35,39 @@ const NOT_PROVIDED = 'To be announced';
 
 const withFallback = (value?: string | null): string => value?.trim() || NOT_PROVIDED;
 
-const buildSubject = (jobTitle: string, stage: string): string =>
-  `Interview Invitation: ${humanizeEnum(stage)} - ${jobTitle}`;
+const buildSubject = (
+  jobTitle: string,
+  stage: string,
+  isInterviewer: boolean,
+  notificationKind: InterviewEmailTemplateData['notificationKind'],
+): string => {
+  const title =
+    notificationKind === 'CANCELLED'
+      ? 'Interview Cancelled'
+      : notificationKind === 'UPDATED'
+        ? 'Interview Details Updated'
+        : isInterviewer
+          ? 'Interview Assignment'
+          : 'Interview Invitation';
+  return `${title}: ${humanizeEnum(stage)} - ${jobTitle}`;
+};
 
 const buildTemplateData = (input: InterviewInvitationInput): InterviewEmailTemplateData => ({
   name: input.name,
+  isInterviewer: input.recipientRole === 'INTERVIEWER',
+  isUpdated: input.notificationKind === 'UPDATED',
+  isCancelled: input.notificationKind === 'CANCELLED',
+  applicantName: input.applicantName ?? '',
+  notificationKind: input.notificationKind ?? 'SCHEDULED',
   jobTitle: input.jobTitle,
   interviewStage: humanizeEnum(input.stage),
-  interviewDate: formatDate(input.date),
-  interviewTime: formatTime(input.date),
+  interviewDate: formatDate(input.date, input.timeZone),
+  interviewTime: formatTime(input.date, input.timeZone),
   interviewType: humanizeEnum(input.type),
+  interviewDuration: input.durationMinutes ?? 60,
+  interviewTimeZone: input.timeZone ?? 'Asia/Manila',
   interviewLocation: withFallback(input.location),
+  interviewMeetingUrl: input.meetingUrl?.trim() ?? '',
   interviewInstructions: input.instructions?.trim() ?? '',
   ctaUrl: input.ctaUrl,
   year: new Date().getFullYear(),
@@ -55,17 +77,31 @@ const buildPlainText = (data: InterviewEmailTemplateData): string =>
   [
     `Hi ${data.name},`,
     '',
-    `You're invited to a ${data.interviewStage} interview for ${data.jobTitle}.`,
+    data.notificationKind === 'CANCELLED'
+      ? `The ${data.interviewStage} interview for ${data.jobTitle} has been cancelled.`
+      : data.notificationKind === 'UPDATED'
+        ? `The ${data.interviewStage} interview for ${data.jobTitle} has been updated.`
+        : data.isInterviewer
+          ? `You have been assigned to interview ${data.applicantName} for ${data.jobTitle}.`
+          : `You're invited to a ${data.interviewStage} interview for ${data.jobTitle}.`,
     '',
+    ...(data.isInterviewer ? [`Applicant: ${data.applicantName}`] : []),
     `Date: ${data.interviewDate}`,
     `Time: ${data.interviewTime}`,
+    `Duration: ${data.interviewDuration} minutes`,
+    `Time zone: ${data.interviewTimeZone}`,
     `Type: ${data.interviewType}`,
     `Location: ${data.interviewLocation}`,
+    ...(data.interviewMeetingUrl ? [`Meeting link: ${data.interviewMeetingUrl}`] : []),
     ...(data.interviewInstructions ? ['', `Instructions: ${data.interviewInstructions}`] : []),
     '',
-    `View details: ${data.ctaUrl}`,
+    ...(data.ctaUrl ? [`View details: ${data.ctaUrl}`] : []),
     '',
-    "If you can't make it, please reply to this email so we can reschedule.",
+    data.notificationKind === 'CANCELLED'
+      ? 'Contact the recruitment team if you have questions.'
+      : data.isInterviewer
+        ? 'Please review the details and contact the recruitment team if you need to make changes.'
+        : "If you can't make it, please reply to this email so we can reschedule.",
     `- ${COMPANY.emailSenderName}`,
   ].join('\n');
 
@@ -75,7 +111,12 @@ export const buildInterviewEmail = (
   const templateData = buildTemplateData(input);
   return {
     to: input.to,
-    subject: buildSubject(input.jobTitle, input.stage),
+    subject: buildSubject(
+      input.jobTitle,
+      input.stage,
+      templateData.isInterviewer,
+      templateData.notificationKind,
+    ),
     text: buildPlainText(templateData),
     templateFileName: 'interview-invitation.html',
     templateData,

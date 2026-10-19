@@ -1,4 +1,7 @@
 export * from './auth.route';
+export * from './applicant.route';
+export * from './cv.route';
+export * from './interview.route';
 export * from './department.route';
 export * from './employee.route';
 export * from './user.route';

@@ -1,0 +1,86 @@
+@baseUrl = http://localhost:3000
+@userId = replace-with-user-id
+@page = 1
+@limit = 10
+
+### First fetch the department ID (IDs change when the database is reset)
+# @name findItDepartment
+GET {{baseUrl}}/departments?name=College%20of%20Information%20Technology
+
+### List employees (page 1)
+GET {{baseUrl}}/employees?page={{page}}&limit={{limit}}
+
+### List employees (page 2)
+GET {{baseUrl}}/employees?page=2&limit={{limit}}
+
+### Search employees by a seeded name (Taylor Santos, IT Department Chair)
+# @name findTaylorEmployee
+GET {{baseUrl}}/employees?search=Taylor&page={{page}}&limit={{limit}}
+
+### Filter employees by position
+GET {{baseUrl}}/employees?position=IT%20Department%20Chair&page={{page}}&limit={{limit}}
+
+### Filter employees by the College of Information Technology
+GET {{baseUrl}}/employees?departmentId={{findItDepartment.response.body.$.departments[0].id}}&page={{page}}&limit={{limit}}
+
+### Combine department, employment type, and teaching status filters
+GET {{baseUrl}}/employees?departmentId={{findItDepartment.response.body.$.departments[0].id}}&employmentType=FULL_TIME&isTeaching=false&page={{page}}&limit={{limit}}
+
+### Create employee
+# @name createEmployee
+POST {{baseUrl}}/employees
+Content-Type: application/json
+
+{
+  "userId": "{{userId}}",
+  "position": "HR Manager",
+  "employmentType": "FULL_TIME",
+  "isTeaching": false,
+  "departmentIds": ["{{findItDepartment.response.body.$.departments[0].id}}"]
+}
+
+### Get employee
+GET {{baseUrl}}/employees/{{createEmployee.response.body.$.employee.id}}
+
+### Update employee
+PATCH {{baseUrl}}/employees/{{createEmployee.response.body.$.employee.id}}
+Content-Type: application/json
+
+{
+  "position": "Senior HR Manager"
+}
+
+### Delete employee
+DELETE {{baseUrl}}/employees/{{createEmployee.response.body.$.employee.id}}
+
+### Employee: view own pre-employment document checklist statuses
+GET {{baseUrl}}/employees/me/document-status
+
+### HR or ADMIN: view the checklist statuses for the seeded Taylor Santos employee
+GET {{baseUrl}}/employees/{{findTaylorEmployee.response.body.$.employees[0].id}}/document-status
+
+### HR or ADMIN: record Taylor's second accepted ID type and in-person verification notes (no file upload)
+POST {{baseUrl}}/employees/{{findTaylorEmployee.response.body.$.employees[0].id}}/document-status/id-records
+Content-Type: application/json
+
+{
+  "idType": "PHILIPPINE_NATIONAL_ID",
+  "notes": "Original ID presented in person and checked by HR."
+}
+
+### HR or ADMIN: mark an item complete after it is received in person
+PATCH {{baseUrl}}/employees/{{findTaylorEmployee.response.body.$.employees[0].id}}/document-status/MEDICAL_RECORD
+Content-Type: application/json
+
+{
+  "status": "complete"
+}
+
+### HR or ADMIN: mark an item pending
+PATCH {{baseUrl}}/employees/{{findTaylorEmployee.response.body.$.employees[0].id}}/document-status/MEDICAL_RECORD
+Content-Type: application/json
+
+{
+  "status": "pending"
+}
+

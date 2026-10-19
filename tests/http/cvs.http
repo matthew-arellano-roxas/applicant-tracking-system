@@ -1,0 +1,38 @@
+@baseUrl = http://localhost:3000
+@fileSize = 123456
+@userId = replace-with-user-id
+
+### Step 1: request a signed upload URL (login as an APPLICANT in auth.http)
+# Set fileSize to the selected PDF's size in bytes.
+# @name createCvUploadUrl
+POST {{baseUrl}}/cvs/upload-url
+Content-Type: application/json
+
+{
+  "mimeType": "application/pdf",
+  "size": {{fileSize}}
+}
+
+### Step 2: upload the PDF directly to Supabase, not through the API server
+@uploadUrl = {{createCvUploadUrl.response.body.$.signedUrl}}
+@cvPath = {{createCvUploadUrl.response.body.$.path}}
+
+POST {{uploadUrl}}
+Content-Type: application/pdf
+
+< ./your-cv.pdf
+
+### Step 3: confirm the upload so the API saves the CV record
+# @name confirmCvUpload
+POST {{baseUrl}}/cvs/confirm-upload
+Content-Type: application/json
+
+{
+  "path": "{{cvPath}}"
+}
+
+### Applicant: request a signed download URL for your own CV
+GET {{baseUrl}}/cvs/me/download
+
+### HR or ADMIN: request a signed download URL for an applicant's CV
+GET {{baseUrl}}/cvs/{{userId}}/download

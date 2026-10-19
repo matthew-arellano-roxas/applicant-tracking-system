@@ -1,0 +1,54 @@
+@baseUrl = http://localhost:3000
+@hiringRequestId = replace-with-approved-hiring-request-id
+@departmentId = replace-with-department-id
+@campusId = 1
+@page = 1
+@limit = 10
+
+### List open job posts (page 1)
+GET {{baseUrl}}/job-posts?status=OPEN&page={{page}}&limit={{limit}}
+
+### List open job posts (page 2)
+GET {{baseUrl}}/job-posts?status=OPEN&page=2&limit={{limit}}
+
+### Search job posts and filter by department/campus
+GET {{baseUrl}}/job-posts?search=teacher&departmentId={{departmentId}}&campusId=1&status=OPEN&page={{page}}&limit={{limit}}
+
+### Create job post (hiring request must be approved)
+# @name createJobPost
+POST {{baseUrl}}/job-posts
+Content-Type: application/json
+
+{
+  "hiringRequestId": "{{hiringRequestId}}",
+  "title": "Software Engineer",
+  "description": "Build and maintain applications.",
+  "employmentType": "FULL_TIME",
+  "salaryMin": 30000,
+  "salaryMax": 50000
+}
+
+### Use created job post ID in this file
+@jobPostId = {{createJobPost.response.body.$.jobPost.id}}
+
+### Get job post
+GET {{baseUrl}}/job-posts/{{jobPostId}}
+
+### Update job post
+PATCH {{baseUrl}}/job-posts/{{jobPostId}}
+Content-Type: application/json
+
+{
+  "description": "Build, test, and maintain applications."
+}
+
+### Change job post status
+PATCH {{baseUrl}}/job-posts/{{jobPostId}}/status
+Content-Type: application/json
+
+{
+  "status": "CLOSED"
+}
+
+### Soft delete job post
+DELETE {{baseUrl}}/job-posts/{{jobPostId}}

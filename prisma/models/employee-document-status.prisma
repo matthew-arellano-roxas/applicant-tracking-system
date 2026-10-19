@@ -1,15 +1,14 @@
-model EmployeeDocumentStatus{
-    id  String    @id @default(cuid())
-    employeeId String @unique
-    employee   Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
-    validId String // pending, complete
-    tin String 
-    sss String
-    philhealth String
-    pagIbig String
-    medicalRecord String
-    psa String
-    birForm String?
-    nbiClearance String
-    governmentNumber String
+model EmployeeDocumentStatus {
+  id            String   @id @default(cuid())
+  employeeId    String   @unique
+  employee      Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  validId       String // pending, complete
+  tin           String
+  sss           String
+  philhealth    String
+  pagIbig       String
+  medicalRecord String
+  psa           String
+  birForm       String?
+  nbiClearance  String
 }

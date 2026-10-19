@@ -1,8 +1,20 @@
 import { z } from 'zod';
+import { paginationQuerySchema } from '@/schemas/pagination.schema';
 
 const nonEmptyString = z.string().trim().min(1);
 
 export const employeeIdParamsSchema = z.object({ id: nonEmptyString });
+export const employeeListQuerySchema = paginationQuerySchema.extend({
+  search: nonEmptyString.optional(),
+  position: nonEmptyString.optional(),
+  userId: nonEmptyString.optional(),
+  departmentId: nonEmptyString.optional(),
+  employmentType: z.enum(['FULL_TIME', 'PART_TIME']).optional(),
+  isTeaching: z
+    .enum(['true', 'false'])
+    .transform((value) => value === 'true')
+    .optional(),
+});
 
 const employeeFieldsSchema = z.object({
   userId: nonEmptyString,

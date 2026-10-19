@@ -1,9 +1,0 @@
-model EmployeeDocument{
-    id  String    @id @default(cuid())
-    employeeId  String @unique
-    employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
-    sss String?
-    philhealth String?
-    pagIbig String?
-    tin String?
-}

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { paginationQuerySchema } from '@/schemas/pagination.schema';
 
 const nonEmptyString = z.string().trim().min(1);
 const salary = z.number().int().nonnegative().nullable();
@@ -6,8 +7,12 @@ const salary = z.number().int().nonnegative().nullable();
 export const jobPostStatusSchema = z.enum(['OPEN', 'CLOSED']);
 export const jobPostIdParamsSchema = z.object({ id: nonEmptyString });
 
-export const jobPostListQuerySchema = z.object({
+export const jobPostListQuerySchema = paginationQuerySchema.extend({
   status: jobPostStatusSchema.optional(),
+  search: nonEmptyString.optional(),
+  employmentType: z.enum(['FULL_TIME', 'PART_TIME', 'BOTH AVAILABLE']).optional(),
+  departmentId: nonEmptyString.optional(),
+  campusId: z.coerce.number().int().positive().optional(),
 });
 
 const jobPostFieldsSchema = z.object({

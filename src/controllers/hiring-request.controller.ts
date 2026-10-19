@@ -18,9 +18,9 @@ import { asyncHandler } from '@/utils/asyncHandler';
 const hiringRequestService = createHiringRequestService(prisma);
 
 export const listHiringRequests: RequestHandler = asyncHandler(async (req, res) => {
-  const query = req.query as z.output<typeof hiringRequestListQuerySchema>;
-  const hiringRequests = await hiringRequestService.list(query);
-  return res.status(200).json({ hiringRequests });
+  const query = req.query as unknown as z.output<typeof hiringRequestListQuerySchema>;
+  const result = await hiringRequestService.list(query);
+  return res.status(200).json({ hiringRequests: result.items, pagination: result.pagination });
 });
 
 export const getHiringRequest: RequestHandler = asyncHandler(async (req, res) => {

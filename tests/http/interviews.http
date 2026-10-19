@@ -1,0 +1,87 @@
+@baseUrl = http://localhost:3000
+@applicationId = replace-with-application-id
+@interviewerId = replace-with-interviewer-user-id
+@interviewId = {{scheduleInterview.response.body.$.interview.id}}
+@page = 1
+@limit = 10
+
+### HR or ADMIN: schedule an interview; email notifications are queued for the applicant and interviewer
+# @name scheduleInterview
+POST {{baseUrl}}/interviews
+Content-Type: application/json
+
+{
+  "applicantId": "{{applicationId}}",
+  "interviewerId": "{{interviewerId}}",
+  "stage": "HR_SCREENING",
+  "date": "2030-10-20T10:00:00+08:00",
+  "durationMinutes": 60,
+  "timeZone": "Asia/Manila",
+  "type": "ONLINE",
+  "meetingUrl": "https://meet.example.com/interview-room",
+  "location": "Video conference",
+  "instructions": "Please join a few minutes early."
+}
+
+### HR or ADMIN: list and filter interviews
+GET {{baseUrl}}/interviews?page={{page}}&limit={{limit}}&status=SCHEDULED
+
+### Search interviews by applicant/job and filter by type/date range
+GET {{baseUrl}}/interviews?search=matthew&type=ONLINE&dateFrom=2030-01-01T00:00:00.000Z&dateTo=2030-12-31T23:59:59.000Z&page={{page}}&limit={{limit}}
+
+### HR, ADMIN, or interviewer: get all stage rubrics
+GET {{baseUrl}}/interviews/rubrics
+
+### HR, ADMIN, or interviewer: get the rubric for one stage
+GET {{baseUrl}}/interviews/rubrics?stage=HR_SCREENING
+
+### Get the department interview rubric for a teaching position
+GET {{baseUrl}}/interviews/rubrics?stage=DEPARTMENT&roleType=TEACHING
+
+### Get the department interview rubric for a non-teaching position
+GET {{baseUrl}}/interviews/rubrics?stage=DEPARTMENT&roleType=NON_TEACHING
+
+### Applicant or assigned EMPLOYEE/interviewer: list own interviews
+GET {{baseUrl}}/interviews/me?page={{page}}&limit={{limit}}
+
+### Applicant/interviewer: filter own interviews by stage, date, and search term
+GET {{baseUrl}}/interviews/me?stage=HR_SCREENING&search=teacher&dateFrom=2030-01-01T00:00:00.000Z&page={{page}}&limit={{limit}}
+
+### Applicant, assigned EMPLOYEE/interviewer, HR, or ADMIN: get interview details
+GET {{baseUrl}}/interviews/{{interviewId}}
+
+### HR or ADMIN: update interview details
+PATCH {{baseUrl}}/interviews/{{interviewId}}
+Content-Type: application/json
+
+{
+  "date": "2030-10-21T10:00:00+08:00",
+  "instructions": "Please join 10 minutes early."
+}
+
+### HR or ADMIN: cancel interview
+PATCH {{baseUrl}}/interviews/{{interviewId}}/cancel
+
+### Assigned interviewer, HR, or ADMIN: mark completed before submitting feedback
+PATCH {{baseUrl}}/interviews/{{interviewId}}/complete
+
+### Assigned interviewer, HR, or ADMIN: submit or replace your interview evaluation
+POST {{baseUrl}}/interviews/{{interviewId}}/evaluations
+Content-Type: application/json
+
+{
+  "ratings": {
+    "motivation": 4,
+    "roleAlignment": 4,
+    "professionalism": 5,
+    "availability": 4,
+    "communication": 5
+  },
+  "recommendation": "YES",
+  "strengths": "Clear explanations and strong subject knowledge.",
+  "concerns": "Could provide more detailed examples.",
+  "comments": "Good overall interview."
+}
+
+### Assigned interviewer, HR, or ADMIN: list evaluations (private to authorized staff)
+GET {{baseUrl}}/interviews/{{interviewId}}/evaluations

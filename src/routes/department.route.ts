@@ -20,6 +20,8 @@ import {
   assignDepartmentHeadBodySchema,
   createDepartmentBodySchema,
   departmentIdParamsSchema,
+  departmentListQuerySchema,
+  departmentMemberListQuerySchema,
   departmentMemberParamsSchema,
   updateDepartmentBodySchema,
 } from '@/schemas/department.schema';
@@ -37,7 +39,7 @@ const departmentManagerRoles = [UserRole.Admin, UserRole.Hr];
 const departmentMemberManagerRoles = [UserRole.Admin, UserRole.Hr, UserRole.DepartmentHead];
 
 departmentRoute.use(requireAuth);
-departmentRoute.get('/', requireRole(...departmentReadRoles), listDepartments);
+departmentRoute.get('/', requireRole(...departmentReadRoles), validateRequest(departmentListQuerySchema, 'query'), listDepartments);
 departmentRoute.post('/', requireRole(...departmentManagerRoles), validateRequest(createDepartmentBodySchema), createDepartment);
 departmentRoute.get('/:id', requireRole(...departmentReadRoles), validateRequest(departmentIdParamsSchema, 'params'), getDepartment);
 departmentRoute.patch(
@@ -70,6 +72,7 @@ departmentRoute.get(
   '/:id/members',
   requireRole(...departmentReadRoles),
   validateRequest(departmentIdParamsSchema, 'params'),
+  validateRequest(departmentMemberListQuerySchema, 'query'),
   listDepartmentMembers,
 );
 departmentRoute.post(

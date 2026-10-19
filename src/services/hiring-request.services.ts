@@ -1,4 +1,6 @@
 import { Prisma, PrismaClient } from '@/generated/prisma/client';
+import type { PaginationQuery } from '@/schemas/pagination.schema';
+import { getPaginationMetadata } from '@/utils/pagination';
 import { ApiError } from '@/utils/ApiError';
 
 type Status = 'DRAFT' | 'PENDING' | 'APPROVED' | 'REJECTED' | 'FULFILLED' | 'CANCELLED';
@@ -37,12 +39,12 @@ export const createHiringRequestService = (db: PrismaClient) => {
     departmentId?: string;
     campusId?: number;
     search?: string;
+    page?: number;
+    limit?: number;
   } = {}) => {
-    const { search, ...where } = filter;
+    const { search, page = 1, limit = 20, ...where } = filter;
     const searchTerm = search?.trim();
-
-    return db.hiringRequest.findMany({
-      where: {
+    const whereClause: Prisma.HiringRequestWhereInput = {
         ...where,
         ...(searchTerm
           ? {
@@ -54,9 +56,17 @@ export const createHiringRequestService = (db: PrismaClient) => {
               ],
             }
           : {}),
-      },
-      orderBy: { id: 'desc' },
-    });
+      };
+    const pagination: PaginationQuery = { page, limit };
+    return Promise.all([
+      db.hiringRequest.findMany({
+        where: whereClause,
+        orderBy: { id: 'desc' },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      db.hiringRequest.count({ where: whereClause }),
+    ]).then(([items, total]) => ({ items, pagination: getPaginationMetadata(pagination, total) }));
   };
 
   /** Drafts only. */

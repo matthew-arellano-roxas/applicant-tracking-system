@@ -7,3 +7,7 @@ export const QUEUE = {
 export const EMAIL_JOB = {
   SEND: 'send',
 } as const;
+
+export const LLM_JOB = {
+  SCORE_APPLICATION: 'score-application',
+} as const;

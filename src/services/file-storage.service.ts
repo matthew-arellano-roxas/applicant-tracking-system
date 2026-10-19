@@ -28,7 +28,7 @@ export interface StorageService {
   createUploadAuthorization: (
     userId: string,
     file: { mimeType: string; size: number },
-  ) => Promise<{ bucket: string; path: string; token: string; signedUrl: string }>;
+  ) => Promise<{ bucket: string; path: string; signedUrl: string }>;
 
   confirmUpload: (
     userId: string,
@@ -81,7 +81,7 @@ export function createStorageService(config: StorageServiceConfig = {}): Storage
     const { data, error } = await supabase.storage.from(bucket).createSignedUploadUrl(path);
     if (error || !data) throw new StorageError('Could not create upload authorization', 500);
 
-    return { bucket, path: data.path, token: data.token, signedUrl: data.signedUrl };
+    return { bucket, path: data.path, signedUrl: data.signedUrl };
   }
 
   /**
@@ -92,7 +92,10 @@ export function createStorageService(config: StorageServiceConfig = {}): Storage
     // Prevent claiming another user's file
     if (!path.startsWith(`${userId}/`)) throw new StorageError('Invalid file path', 403);
 
-    const [folder, fileName] = path.split('/');
+    const [folder, fileName, ...extraPathParts] = path.split('/');
+    if (!folder || !fileName || extraPathParts.length > 0) {
+      throw new StorageError('Invalid file path');
+    }
     const { data: objects, error } = await supabase.storage
       .from(bucket)
       .list(folder, { search: fileName, limit: 1 });
@@ -103,7 +106,7 @@ export function createStorageService(config: StorageServiceConfig = {}): Storage
 
     const size = Number(object.metadata?.size ?? 0);
     const mimeType = String(object.metadata?.mimetype ?? '');
-    if (!allowedMimeTypes[mimeType] || size > maxSizeBytes) {
+    if (!allowedMimeTypes[mimeType] || size <= 0 || size > maxSizeBytes) {
       // Uploaded something that doesn't meet the rules: remove it
       await supabase.storage.from(bucket).remove([path]);
       throw new StorageError('Uploaded file is not valid');

@@ -8,6 +8,8 @@ import {
   assignDepartmentHeadBodySchema,
   createDepartmentBodySchema,
   departmentIdParamsSchema,
+  departmentListQuerySchema,
+  departmentMemberListQuerySchema,
   departmentMemberParamsSchema,
   updateDepartmentBodySchema,
 } from '@/schemas/department.schema';
@@ -15,9 +17,10 @@ import { asyncHandler } from '@/utils/asyncHandler';
 
 const departmentService = createDepartmentService(prisma);
 
-export const listDepartments: RequestHandler = asyncHandler(async (_req, res) => {
-  const departments = await departmentService.listDepartments();
-  return res.status(200).json({ departments });
+export const listDepartments: RequestHandler = asyncHandler(async (req, res) => {
+  const pagination = req.query as unknown as z.output<typeof departmentListQuerySchema>;
+  const result = await departmentService.listDepartments(pagination);
+  return res.status(200).json({ departments: result.items, pagination: result.pagination });
 });
 
 export const getDepartment: RequestHandler = asyncHandler(async (req, res) => {
@@ -47,8 +50,9 @@ export const deleteDepartment: RequestHandler = asyncHandler(async (req, res) =>
 
 export const listDepartmentMembers: RequestHandler = asyncHandler(async (req, res) => {
   const { id } = req.params as z.output<typeof departmentIdParamsSchema>;
-  const members = await departmentService.listMembers(id);
-  return res.status(200).json({ members });
+  const pagination = req.query as unknown as z.output<typeof departmentMemberListQuerySchema>;
+  const result = await departmentService.listMembers(id, pagination);
+  return res.status(200).json({ members: result.items, pagination: result.pagination });
 });
 
 export const addDepartmentMember: RequestHandler = asyncHandler(async (req, res) => {

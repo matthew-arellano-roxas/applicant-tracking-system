@@ -1,9 +1,11 @@
-model SubmittedId{
-    id String    @id @default(cuid())
-    employeeId String @unique
-    employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
-    ValidId  Int
-    validId  ValidId @relation(fields: [ValidId], references: [id]) 
-    imageUrl    String
-    uploadedAt DateTime @default(now()) @db.Timestamptz(3)
+model SubmittedId {
+  id          String         @id @default(cuid())
+  employeeId  String
+  employee    Employee       @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  idType      AcceptedIdType
+  notes       String?
+  presentedAt DateTime       @default(now()) @db.Timestamptz(3)
+
+  @@unique([employeeId, idType])
+  @@index([employeeId])
 }

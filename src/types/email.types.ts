@@ -22,12 +22,20 @@ export type EmailContent = EmailData<OtpEmailTemplateData>;
 
 export interface InterviewEmailTemplateData {
   name: string;
+  isInterviewer: boolean;
+  isUpdated: boolean;
+  isCancelled: boolean;
+  applicantName: string;
+  notificationKind: 'SCHEDULED' | 'UPDATED' | 'CANCELLED';
   jobTitle: string;
   interviewStage: string;
   interviewDate: string;
   interviewTime: string;
   interviewType: string;
+  interviewDuration: number;
+  interviewTimeZone: string;
   interviewLocation: string;
+  interviewMeetingUrl: string;
   interviewInstructions: string;
   ctaUrl: string;
   year: number;
@@ -36,11 +44,17 @@ export interface InterviewEmailTemplateData {
 export interface InterviewInvitationInput {
   to: string;
   name: string;
+  recipientRole?: 'APPLICANT' | 'INTERVIEWER';
+  applicantName?: string;
+  notificationKind?: 'SCHEDULED' | 'UPDATED' | 'CANCELLED';
   jobTitle: string;
   stage: string;
   type: string;
   date: Date;
+  durationMinutes?: number;
+  timeZone?: string;
   location?: string | null;
+  meetingUrl?: string | null;
   instructions?: string | null;
   ctaUrl: string;
 }

@@ -1,6 +1,19 @@
 import { Router } from 'express';
 
 import {
+  employeeDocumentRoles,
+  getEmployeeDocumentStatus,
+  getMyEmployeeDocumentStatus,
+  recordEmployeeId,
+  reviewEmployeeDocument,
+} from '@/controllers/employee-document.controller';
+import {
+  employeeDocumentIdParamsSchema,
+  employeeDocumentStatusParamsSchema,
+  recordEmployeeIdBodySchema,
+  reviewEmployeeDocumentBodySchema,
+} from '@/schemas/employee-document.schema';
+import {
   createEmployee,
   deleteEmployee,
   getEmployee,
@@ -13,6 +26,7 @@ import { UserRole } from '@/constants';
 import {
   createEmployeeBodySchema,
   employeeIdParamsSchema,
+  employeeListQuerySchema,
   updateEmployeeBodySchema,
 } from '@/schemas/employee.schema';
 import { validateRequest } from '@/utils/validateRequest';
@@ -22,9 +36,49 @@ const employeeReadRoles = [UserRole.Admin, UserRole.Hr, UserRole.Dean, UserRole.
 const employeeManagerRoles = [UserRole.Admin, UserRole.Hr];
 
 employeeRoute.use(requireAuth);
-employeeRoute.get('/', requireRole(...employeeReadRoles), listEmployees);
-employeeRoute.post('/', requireRole(...employeeManagerRoles), validateRequest(createEmployeeBodySchema), createEmployee);
-employeeRoute.get('/:id', requireRole(...employeeReadRoles), validateRequest(employeeIdParamsSchema, 'params'), getEmployee);
+employeeRoute.get(
+  '/me/document-status',
+  requireRole(...employeeDocumentRoles.staff),
+  getMyEmployeeDocumentStatus,
+);
+employeeRoute.get(
+  '/:id/document-status',
+  requireRole(...employeeDocumentRoles.reviewers),
+  validateRequest(employeeDocumentIdParamsSchema, 'params'),
+  getEmployeeDocumentStatus,
+);
+employeeRoute.post(
+  '/:id/document-status/id-records',
+  requireRole(...employeeDocumentRoles.reviewers),
+  validateRequest(employeeDocumentIdParamsSchema, 'params'),
+  validateRequest(recordEmployeeIdBodySchema),
+  recordEmployeeId,
+);
+employeeRoute.patch(
+  '/:id/document-status/:documentType',
+  requireRole(...employeeDocumentRoles.reviewers),
+  validateRequest(employeeDocumentStatusParamsSchema, 'params'),
+  validateRequest(reviewEmployeeDocumentBodySchema),
+  reviewEmployeeDocument,
+);
+employeeRoute.get(
+  '/',
+  requireRole(...employeeReadRoles),
+  validateRequest(employeeListQuerySchema, 'query'),
+  listEmployees,
+);
+employeeRoute.post(
+  '/',
+  requireRole(...employeeManagerRoles),
+  validateRequest(createEmployeeBodySchema),
+  createEmployee,
+);
+employeeRoute.get(
+  '/:id',
+  requireRole(...employeeReadRoles),
+  validateRequest(employeeIdParamsSchema, 'params'),
+  getEmployee,
+);
 employeeRoute.patch(
   '/:id',
   requireRole(...employeeManagerRoles),
@@ -32,6 +86,11 @@ employeeRoute.patch(
   validateRequest(updateEmployeeBodySchema),
   updateEmployee,
 );
-employeeRoute.delete('/:id', requireRole(UserRole.Admin), validateRequest(employeeIdParamsSchema, 'params'), deleteEmployee);
+employeeRoute.delete(
+  '/:id',
+  requireRole(UserRole.Admin),
+  validateRequest(employeeIdParamsSchema, 'params'),
+  deleteEmployee,
+);
 
 export { employeeRoute };

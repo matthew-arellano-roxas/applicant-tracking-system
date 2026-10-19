@@ -16,7 +16,20 @@ const authRoute = Router();
 authRoute.post(
   '/login',
   validateRequest(loginBodySchema),
-  passport.authenticate('local', { session: false }),
+  (req, res, next) =>
+    passport.authenticate(
+      'local',
+      { session: false },
+      (error: unknown, user: Express.User | false | null | undefined) => {
+        if (error) return next(error);
+        if (!user) {
+          return res.status(401).json({ message: 'Invalid email or password' });
+        }
+
+        req.user = user;
+        return next();
+      },
+    )(req, res, next),
   login,
 );
 

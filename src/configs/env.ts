@@ -3,6 +3,7 @@ import 'dotenv/config';
 export const env = {
   // Express
   PORT: process.env.PORT,
+  FRONTEND_URL: process.env.FRONTEND_URL,
   // Database
   DATABASE_URL: process.env.DATABASE_URL,
   // Nodemailer
