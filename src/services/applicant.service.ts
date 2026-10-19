@@ -1,4 +1,4 @@
-import { PrismaClient } from '@/generated/prisma/client';
+import { Prisma, PrismaClient } from '@/generated/prisma/client';
 import { llmQueue } from '@/queues/llm.queue';
 import { LLM_JOB } from '@/constants';
 import { ApiError } from '@/utils/ApiError';
@@ -35,6 +35,9 @@ export type ApplicationListFilter = {
   scoreStatus?: string;
   jobPostId?: string;
   userId?: string;
+  search?: string;
+  minScore?: number;
+  maxScore?: number;
   page?: number;
   limit?: number;
 };
@@ -166,7 +169,32 @@ export const createApplicantService = (prisma: PrismaClient): ApplicationService
     items: ApplicantWithDetails[];
     pagination: ReturnType<typeof getPaginationMetadata>;
   }> {
-    const { page = 1, limit = 20, ...where } = filter;
+    const { page = 1, limit = 20, search, minScore, maxScore, ...filters } = filter;
+    const where: Prisma.ApplicantWhereInput = {
+      ...filters,
+      ...(search
+        ? {
+            OR: [
+              { user: { firstName: { contains: search, mode: 'insensitive' } } },
+              { user: { lastName: { contains: search, mode: 'insensitive' } } },
+              { user: { email: { contains: search, mode: 'insensitive' } } },
+              { jobPost: { title: { contains: search, mode: 'insensitive' } } },
+            ],
+          }
+        : {}),
+      ...(minScore === undefined && maxScore === undefined
+        ? {}
+        : {
+            scores: {
+              is: {
+                totalScore: {
+                  ...(minScore === undefined ? {} : { gte: minScore }),
+                  ...(maxScore === undefined ? {} : { lte: maxScore }),
+                },
+              },
+            },
+          }),
+    };
     const skip = (page - 1) * limit;
 
     const [items, total] = await Promise.all([

@@ -37,6 +37,9 @@ GET {{baseUrl}}/applications?jobPostId={{jobPostId}}&page={{page}}&limit={{limit
 ### HR or ADMIN: filter applications whose CV scoring has completed
 GET {{baseUrl}}/applications?jobPostId={{jobPostId}}&scoreStatus=COMPLETED&page={{page}}&limit={{limit}}
 
+### HR or ADMIN: search applicants and filter by score range
+GET {{baseUrl}}/applications?search=matthew&minScore=60&maxScore=90&page={{page}}&limit={{limit}}
+
 ### HR or ADMIN: update application status
 PATCH {{baseUrl}}/applications/{{applicationId}}/status
 Content-Type: application/json

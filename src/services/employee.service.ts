@@ -29,13 +29,6 @@ export interface ListEmployeesQuery {
   isTeaching?: boolean;
 }
 
-export interface EmployeeDocumentsInput {
-  sss?: string | null;
-  philhealth?: string | null;
-  pagIbig?: string | null;
-  tin?: string | null;
-}
-
 export type EmployeeDocumentStatusInput = Partial<{
   validId: DocStatus;
   tin: DocStatus;
@@ -46,7 +39,6 @@ export type EmployeeDocumentStatusInput = Partial<{
   psa: DocStatus;
   birForm: DocStatus | null;
   nbiClearance: DocStatus;
-  governmentNumber: DocStatus;
 }>;
 
 export class EmployeeServiceError extends Error {
@@ -75,8 +67,6 @@ const employeeInclude = {
   user: { select: userSelect },
   departmentMembers: { include: { department: true } },
   employeeDocsStatus: true,
-  employeeDocs: true,
-  submittedId: { include: { validId: true } },
 } as const;
 
 /* ------------------------------ Service ------------------------------ */
@@ -115,10 +105,8 @@ export const employeeService = {
               medicalRecord: 'pending',
               psa: 'pending',
               nbiClearance: 'pending',
-              governmentNumber: 'pending',
             },
           },
-          employeeDocs: { create: {} },
           departmentMembers: {
             create: [...new Set(departmentIds)].map((departmentId) => ({ departmentId })),
           },
@@ -152,17 +140,30 @@ export const employeeService = {
     const where = {
       ...(query.employmentType && { employmentType: query.employmentType }),
       ...(query.isTeaching !== undefined && { isTeaching: query.isTeaching }),
-      ...(query.departmentId && {
-        departmentMembers: { some: { departmentId: query.departmentId } },
-      }),
-      ...(query.search && {
-        OR: [
-          { position: { contains: query.search, mode: 'insensitive' as const } },
-          { user: { firstName: { contains: query.search, mode: 'insensitive' as const } } },
-          { user: { lastName: { contains: query.search, mode: 'insensitive' as const } } },
-          { user: { email: { contains: query.search, mode: 'insensitive' as const } } },
-        ],
-      }),
+      AND: [
+        ...(query.departmentId
+          ? [
+              {
+                OR: [
+                  { departmentMembers: { some: { departmentId: query.departmentId } } },
+                  { departments: { some: { id: query.departmentId } } },
+                ],
+              },
+            ]
+          : []),
+        ...(query.search
+          ? [
+              {
+                OR: [
+                  { position: { contains: query.search, mode: 'insensitive' as const } },
+                  { user: { firstName: { contains: query.search, mode: 'insensitive' as const } } },
+                  { user: { lastName: { contains: query.search, mode: 'insensitive' as const } } },
+                  { user: { email: { contains: query.search, mode: 'insensitive' as const } } },
+                ],
+              },
+            ]
+          : []),
+      ],
     };
 
     const [items, total] = await prisma.$transaction([
@@ -224,16 +225,6 @@ export const employeeService = {
 
   /* ---------------------------- Documents ---------------------------- */
 
-  /** Government numbers (SSS, PhilHealth, Pag-IBIG, TIN). */
-  async upsertDocuments(employeeId: string, input: EmployeeDocumentsInput) {
-    await this.getById(employeeId);
-    return prisma.employeeDocument.upsert({
-      where: { employeeId },
-      update: input,
-      create: { employeeId, ...input },
-    });
-  },
-
   /** Onboarding checklist (pending / complete per requirement). */
   async updateDocumentStatus(employeeId: string, input: EmployeeDocumentStatusInput) {
     await this.getById(employeeId);
@@ -243,18 +234,4 @@ export const employeeService = {
     });
   },
 
-  /** Employee's submitted valid ID (image already uploaded to Supabase storage). */
-  async setSubmittedId(employeeId: string, validIdId: number, imageUrl: string) {
-    await this.getById(employeeId);
-
-    const validId = await prisma.validId.findUnique({ where: { id: validIdId } });
-    if (!validId) throw new EmployeeServiceError('Valid ID type not found', 404);
-
-    return prisma.submittedId.upsert({
-      where: { employeeId },
-      update: { ValidId: validIdId, imageUrl, uploadedAt: new Date() },
-      create: { employeeId, ValidId: validIdId, imageUrl },
-      include: { validId: true },
-    });
-  },
 };

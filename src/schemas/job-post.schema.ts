@@ -9,6 +9,10 @@ export const jobPostIdParamsSchema = z.object({ id: nonEmptyString });
 
 export const jobPostListQuerySchema = paginationQuerySchema.extend({
   status: jobPostStatusSchema.optional(),
+  search: nonEmptyString.optional(),
+  employmentType: z.enum(['FULL_TIME', 'PART_TIME', 'BOTH AVAILABLE']).optional(),
+  departmentId: nonEmptyString.optional(),
+  campusId: z.coerce.number().int().positive().optional(),
 });
 
 const jobPostFieldsSchema = z.object({

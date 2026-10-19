@@ -1,6 +1,0 @@
-model ValidId{
-    id Int @id @default(autoincrement())
-    name String
-
-    submittedId SubmittedId[]
-}

@@ -3,8 +3,25 @@ import { paginationQuerySchema } from '@/schemas/pagination.schema';
 
 const nonEmptyString = z.string().trim().min(1);
 const departmentIdParamsSchema = z.object({ id: nonEmptyString });
-export const departmentListQuerySchema = paginationQuerySchema;
-export const departmentMemberListQuerySchema = paginationQuerySchema;
+export const departmentListQuerySchema = paginationQuerySchema.extend({
+  name: nonEmptyString.optional(),
+  search: nonEmptyString.optional(),
+  departmentHeadId: nonEmptyString.optional(),
+  hasDepartmentHead: z
+    .enum(['true', 'false'])
+    .transform((value) => value === 'true')
+    .optional(),
+});
+export const departmentMemberListQuerySchema = paginationQuerySchema.extend({
+  employeeId: nonEmptyString.optional(),
+  search: nonEmptyString.optional(),
+  position: nonEmptyString.optional(),
+  employmentType: z.enum(['FULL_TIME', 'PART_TIME']).optional(),
+  isTeaching: z
+    .enum(['true', 'false'])
+    .transform((value) => value === 'true')
+    .optional(),
+});
 
 export { departmentIdParamsSchema };
 export const departmentMemberParamsSchema = z.object({

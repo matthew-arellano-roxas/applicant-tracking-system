@@ -26,6 +26,9 @@ Content-Type: application/json
 ### HR or ADMIN: list and filter interviews
 GET {{baseUrl}}/interviews?page={{page}}&limit={{limit}}&status=SCHEDULED
 
+### Search interviews by applicant/job and filter by type/date range
+GET {{baseUrl}}/interviews?search=matthew&type=ONLINE&dateFrom=2030-01-01T00:00:00.000Z&dateTo=2030-12-31T23:59:59.000Z&page={{page}}&limit={{limit}}
+
 ### HR, ADMIN, or interviewer: get all stage rubrics
 GET {{baseUrl}}/interviews/rubrics
 
@@ -40,6 +43,9 @@ GET {{baseUrl}}/interviews/rubrics?stage=DEPARTMENT&roleType=NON_TEACHING
 
 ### Applicant or assigned EMPLOYEE/interviewer: list own interviews
 GET {{baseUrl}}/interviews/me?page={{page}}&limit={{limit}}
+
+### Applicant/interviewer: filter own interviews by stage, date, and search term
+GET {{baseUrl}}/interviews/me?stage=HR_SCREENING&search=teacher&dateFrom=2030-01-01T00:00:00.000Z&page={{page}}&limit={{limit}}
 
 ### Applicant, assigned EMPLOYEE/interviewer, HR, or ADMIN: get interview details
 GET {{baseUrl}}/interviews/{{interviewId}}

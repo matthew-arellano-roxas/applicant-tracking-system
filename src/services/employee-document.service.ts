@@ -1,29 +1,7 @@
-import { randomUUID } from 'node:crypto';
-import { supabase } from '@/configs/supabase';
 import { prisma } from '@/configs/prisma';
 import { Prisma } from '@/generated/prisma/client';
 import { ApiError } from '@/utils/ApiError';
-import type { EmployeeDocumentType } from '@/schemas/employee-document.schema';
-
-const BUCKET = 'employee-documents';
-const MAX_SIZE_BYTES = 10 * 1024 * 1024;
-const MIME_EXTENSIONS: Record<string, string> = {
-  'application/pdf': 'pdf',
-  'image/jpeg': 'jpg',
-  'image/png': 'png',
-};
-const FILE_FIELD = {
-  VALID_ID: 'validIdPath',
-  TIN: 'tinDocumentPath',
-  SSS: 'sssDocumentPath',
-  PHILHEALTH: 'philhealthDocumentPath',
-  PAG_IBIG: 'pagIbigDocumentPath',
-  MEDICAL_RECORD: 'medicalRecordPath',
-  PSA: 'psaPath',
-  BIR_FORM: 'birFormPath',
-  NBI_CLEARANCE: 'nbiClearancePath',
-  GOVERNMENT_NUMBER: 'governmentNumberPath',
-} as const;
+import type { AcceptedIdType, EmployeeDocumentType } from '@/schemas/employee-document.schema';
 const STATUS_FIELD = {
   VALID_ID: 'validId',
   TIN: 'tin',
@@ -34,7 +12,6 @@ const STATUS_FIELD = {
   PSA: 'psa',
   BIR_FORM: 'birForm',
   NBI_CLEARANCE: 'nbiClearance',
-  GOVERNMENT_NUMBER: 'governmentNumber',
 } as const;
 
 const getEmployee = async (employeeId: string) => {
@@ -77,114 +54,55 @@ const updateStatus = async (
       medicalRecord: 'pending',
       psa: 'pending',
       nbiClearance: 'pending',
-      governmentNumber: 'pending',
       ...statusData,
     } as Prisma.EmployeeDocumentStatusCreateInput,
   });
 };
 
 export const employeeDocumentService = {
-  async createUploadAuthorization(
-    employeeId: string,
-    documentType: EmployeeDocumentType,
-    file: { mimeType: string; size: number },
-  ) {
-    await getEmployee(employeeId);
-    const extension = MIME_EXTENSIONS[file.mimeType];
-    if (!extension) throw ApiError.badRequest('Only PDF, JPEG, and PNG files are allowed');
-    if (!Number.isInteger(file.size) || file.size <= 0 || file.size > MAX_SIZE_BYTES) {
-      throw ApiError.badRequest('File must be between 1 byte and 10 MB');
-    }
-
-    const path = `${employeeId}/${documentType}/${randomUUID()}.${extension}`;
-    const { data, error } = await supabase.storage.from(BUCKET).createSignedUploadUrl(path);
-    if (error || !data) throw ApiError.internal('Could not create upload authorization');
-    return { bucket: BUCKET, path: data.path, signedUrl: data.signedUrl };
-  },
-
-  async confirmUpload(employeeId: string, documentType: EmployeeDocumentType, path: string) {
-    await getEmployee(employeeId);
-    const pathParts = path.split('/');
-    if (
-      pathParts.length !== 3 ||
-      pathParts[0] !== employeeId ||
-      pathParts[1] !== documentType ||
-      !pathParts[2]
-    ) {
-      throw ApiError.forbidden('Invalid employee document path');
-    }
-
-    const { data: objects, error } = await supabase.storage
-      .from(BUCKET)
-      .list(`${employeeId}/${documentType}`, { search: pathParts[2], limit: 1 });
-    if (error) throw ApiError.internal('Could not verify employee document upload');
-    const object = objects?.find((item) => item.name === pathParts[2]);
-    if (!object) throw ApiError.notFound('Uploaded file was not found');
-
-    const mimeType = String(object.metadata?.mimetype ?? '');
-    const sizeBytes = Number(object.metadata?.size ?? 0);
-    if (!MIME_EXTENSIONS[mimeType] || sizeBytes <= 0 || sizeBytes > MAX_SIZE_BYTES) {
-      await supabase.storage.from(BUCKET).remove([path]);
-      throw ApiError.badRequest('Uploaded file is not a supported document or exceeds 10 MB');
-    }
-
-    const fileField = FILE_FIELD[documentType];
-    const previous = await prisma.employeeDocument.findUnique({
-      where: { employeeId },
-      select: { [fileField]: true },
-    });
-    const previousPath = previous?.[fileField] ?? null;
-    const documentData = { [fileField]: path };
-
-    await prisma.$transaction(async (tx) => {
-      await tx.employeeDocument.upsert({
-        where: { employeeId },
-        update: documentData as Prisma.EmployeeDocumentUpdateInput,
-        create: {
-          employeeId,
-          ...documentData,
-        } as Prisma.EmployeeDocumentUncheckedCreateInput,
-      });
-      await updateStatus(tx, employeeId, documentType, 'pending');
-    });
-
-    if (previousPath && previousPath !== path) {
-      const { error: removeError } = await supabase.storage.from(BUCKET).remove([previousPath]);
-      if (removeError) console.error('Could not remove replaced employee document:', removeError);
-    }
-
-    return {
-      employeeId,
-      documentType,
-      path,
-      mimeType,
-      size: sizeBytes,
-      status: 'pending' as const,
-    };
-  },
-
   async list(employeeId: string) {
     await getEmployee(employeeId);
-    const [documents, status] = await Promise.all([
-      prisma.employeeDocument.findUnique({ where: { employeeId } }),
+    const [status, idRecords] = await Promise.all([
       prisma.employeeDocumentStatus.findUnique({ where: { employeeId } }),
+      prisma.submittedId.findMany({ where: { employeeId }, orderBy: { presentedAt: 'asc' } }),
     ]);
-    return { documents, status };
+    return { employeeId, status, idRecords };
   },
 
-  async getDownloadUrl(employeeId: string, documentType: EmployeeDocumentType) {
+  async recordId(employeeId: string, input: { idType: AcceptedIdType; notes?: string }) {
     await getEmployee(employeeId);
-    const field = FILE_FIELD[documentType];
-    const document = await prisma.employeeDocument.findUnique({
-      where: { employeeId },
-      select: { [field]: true },
-    });
-    const path = document?.[field];
-    if (!path) throw ApiError.notFound('Employee document not found');
+    return prisma.$transaction(async (tx) => {
+      const existing = await tx.submittedId.findUnique({
+        where: {
+          employeeId_idType: {
+            employeeId,
+            idType: input.idType as Prisma.SubmittedIdCreateInput['idType'],
+          },
+        },
+      });
+      if (!existing) {
+        const existingCount = await tx.submittedId.count({ where: { employeeId } });
+        if (existingCount >= 2) {
+          throw ApiError.conflict('An employee can have at most two accepted ID records');
+        }
+      }
 
-    const { data, error } = await supabase.storage.from(BUCKET).createSignedUrl(path, 60);
-    if (error || !data) throw ApiError.internal('Could not create employee document download link');
-    return { url: data.signedUrl, expiresIn: 60 };
+      const idRecord = existing
+        ? await tx.submittedId.update({
+            where: { id: existing.id },
+            data: { notes: input.notes ?? null, presentedAt: new Date() },
+          })
+        : await tx.submittedId.create({
+            data: {
+              employeeId,
+              idType: input.idType as Prisma.SubmittedIdCreateInput['idType'],
+              notes: input.notes,
+            },
+          });
+      const idCount = await tx.submittedId.count({ where: { employeeId } });
+      if (idCount >= 2) await updateStatus(tx, employeeId, 'VALID_ID', 'complete');
+      return { idRecord, idCount, validIdStatus: idCount >= 2 ? 'complete' : 'pending' };
+    });
   },
 
   async review(
@@ -193,17 +111,14 @@ export const employeeDocumentService = {
     status: 'pending' | 'complete',
   ) {
     await getEmployee(employeeId);
-    if (status === 'complete') {
-      const fileField = FILE_FIELD[documentType];
-      const document = await prisma.employeeDocument.findUnique({
-        where: { employeeId },
-        select: { [fileField]: true },
-      });
-      if (!document?.[fileField]) {
-        throw ApiError.conflict('Upload the document before marking it complete');
+    if (documentType === 'VALID_ID' && status === 'complete') {
+      const idCount = await prisma.submittedId.count({ where: { employeeId } });
+      if (idCount < 2) {
+        throw ApiError.conflict(
+          'Record both accepted ID types before marking the ID checklist complete',
+        );
       }
     }
-
     await prisma.$transaction((tx) => updateStatus(tx, employeeId, documentType, status));
     return { employeeId, documentType, status };
   },

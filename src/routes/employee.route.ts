@@ -1,21 +1,16 @@
 import { Router } from 'express';
 
 import {
-  confirmMyEmployeeDocumentUpload,
-  createMyEmployeeDocumentUploadUrl,
   employeeDocumentRoles,
-  getEmployeeDocumentDownloadUrl,
-  getMyEmployeeDocumentDownloadUrl,
-  listEmployeeDocuments,
-  listMyEmployeeDocuments,
+  getEmployeeDocumentStatus,
+  getMyEmployeeDocumentStatus,
+  recordEmployeeId,
   reviewEmployeeDocument,
 } from '@/controllers/employee-document.controller';
 import {
-  confirmEmployeeDocumentUploadBodySchema,
-  createEmployeeDocumentUploadUrlBodySchema,
   employeeDocumentIdParamsSchema,
-  employeeDocumentTypeOnlyParamsSchema,
-  employeeDocumentTypeParamsSchema,
+  employeeDocumentStatusParamsSchema,
+  recordEmployeeIdBodySchema,
   reviewEmployeeDocumentBodySchema,
 } from '@/schemas/employee-document.schema';
 import {
@@ -41,45 +36,28 @@ const employeeReadRoles = [UserRole.Admin, UserRole.Hr, UserRole.Dean, UserRole.
 const employeeManagerRoles = [UserRole.Admin, UserRole.Hr];
 
 employeeRoute.use(requireAuth);
-employeeRoute.post(
-  '/me/documents/upload-url',
+employeeRoute.get(
+  '/me/document-status',
   requireRole(...employeeDocumentRoles.staff),
-  validateRequest(createEmployeeDocumentUploadUrlBodySchema),
-  createMyEmployeeDocumentUploadUrl,
-);
-employeeRoute.post(
-  '/me/documents/confirm-upload',
-  requireRole(...employeeDocumentRoles.staff),
-  validateRequest(confirmEmployeeDocumentUploadBodySchema),
-  confirmMyEmployeeDocumentUpload,
+  getMyEmployeeDocumentStatus,
 );
 employeeRoute.get(
-  '/me/documents',
-  requireRole(...employeeDocumentRoles.staff),
-  listMyEmployeeDocuments,
-);
-employeeRoute.get(
-  '/me/documents/:documentType/download',
-  requireRole(...employeeDocumentRoles.staff),
-  validateRequest(employeeDocumentTypeOnlyParamsSchema, 'params'),
-  getMyEmployeeDocumentDownloadUrl,
-);
-employeeRoute.get(
-  '/:id/documents',
+  '/:id/document-status',
   requireRole(...employeeDocumentRoles.reviewers),
   validateRequest(employeeDocumentIdParamsSchema, 'params'),
-  listEmployeeDocuments,
+  getEmployeeDocumentStatus,
 );
-employeeRoute.get(
-  '/:id/documents/:documentType/download',
+employeeRoute.post(
+  '/:id/document-status/id-records',
   requireRole(...employeeDocumentRoles.reviewers),
-  validateRequest(employeeDocumentTypeParamsSchema, 'params'),
-  getEmployeeDocumentDownloadUrl,
+  validateRequest(employeeDocumentIdParamsSchema, 'params'),
+  validateRequest(recordEmployeeIdBodySchema),
+  recordEmployeeId,
 );
 employeeRoute.patch(
-  '/:id/documents/:documentType/status',
+  '/:id/document-status/:documentType',
   requireRole(...employeeDocumentRoles.reviewers),
-  validateRequest(employeeDocumentTypeParamsSchema, 'params'),
+  validateRequest(employeeDocumentStatusParamsSchema, 'params'),
   validateRequest(reviewEmployeeDocumentBodySchema),
   reviewEmployeeDocument,
 );

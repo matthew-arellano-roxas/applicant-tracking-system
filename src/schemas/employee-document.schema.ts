@@ -10,35 +10,30 @@ export const employeeDocumentTypeSchema = z.enum([
   'PSA',
   'BIR_FORM',
   'NBI_CLEARANCE',
-  'GOVERNMENT_NUMBER',
 ]);
 export type EmployeeDocumentType = z.infer<typeof employeeDocumentTypeSchema>;
 
-export const employeeDocumentStatusSchema = z.enum(['PENDING', 'APPROVED', 'REJECTED']);
+export const acceptedIdTypeSchema = z.enum([
+  'PHILIPPINE_NATIONAL_ID',
+  'PASSPORT',
+  'DRIVERS_LICENSE',
+  'UMID',
+  'PRC_ID',
+  'VOTERS_ID',
+  'POSTAL_ID',
+]);
+export type AcceptedIdType = z.infer<typeof acceptedIdTypeSchema>;
+
 export const employeeDocumentIdParamsSchema = z.object({ id: z.string().trim().min(1) });
-export const employeeDocumentTypeParamsSchema = z.object({
-  id: z.string().trim().min(1),
+export const employeeDocumentStatusParamsSchema = employeeDocumentIdParamsSchema.extend({
   documentType: employeeDocumentTypeSchema,
-});
-export const employeeDocumentTypeOnlyParamsSchema = z.object({
-  documentType: employeeDocumentTypeSchema,
-});
-
-export const createEmployeeDocumentUploadUrlBodySchema = z.object({
-  documentType: employeeDocumentTypeSchema,
-  mimeType: z.enum(['application/pdf', 'image/jpeg', 'image/png']),
-  size: z
-    .number()
-    .int()
-    .positive()
-    .max(10 * 1024 * 1024),
-});
-
-export const confirmEmployeeDocumentUploadBodySchema = z.object({
-  documentType: employeeDocumentTypeSchema,
-  path: z.string().trim().min(1),
 });
 
 export const reviewEmployeeDocumentBodySchema = z.object({
   status: z.enum(['pending', 'complete']),
+});
+
+export const recordEmployeeIdBodySchema = z.object({
+  idType: acceptedIdTypeSchema,
+  notes: z.string().trim().max(500).optional(),
 });

@@ -18,6 +18,11 @@ export const hiringRequestListQuerySchema = paginationQuerySchema.extend({
   status: hiringRequestStatusSchema.optional(),
   departmentId: nonEmptyString.optional(),
   campusId: z.coerce.number().int().positive().optional(),
+  employmentType: z.enum(['FULL_TIME', 'PART_TIME']).optional(),
+  isTeaching: z
+    .enum(['true', 'false'])
+    .transform((value) => value === 'true')
+    .optional(),
 });
 
 const hiringRequestFieldsSchema = z.object({

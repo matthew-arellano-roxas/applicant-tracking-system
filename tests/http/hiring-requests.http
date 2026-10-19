@@ -10,6 +10,9 @@ GET {{baseUrl}}/hiring-requests?search=engineer&status=APPROVED&page={{page}}&li
 ### Search hiring requests (page 2)
 GET {{baseUrl}}/hiring-requests?search=engineer&status=APPROVED&page=2&limit={{limit}}
 
+### Filter hiring requests by teaching status and employment type
+GET {{baseUrl}}/hiring-requests?isTeaching=false&employmentType=FULL_TIME&page={{page}}&limit={{limit}}
+
 ### Create hiring request
 # @name createHiringRequest
 POST {{baseUrl}}/hiring-requests

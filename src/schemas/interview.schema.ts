@@ -109,11 +109,37 @@ export const interviewEvaluationBodySchema = z.object({
   comments: z.string().trim().nullable().optional(),
 });
 
-export const interviewListQuerySchema = paginationQuerySchema.extend({
-  applicantId: nonEmptyString.optional(),
-  interviewerId: nonEmptyString.optional(),
-  stage: interviewStageSchema.optional(),
-  status: interviewStatusSchema.optional(),
-});
+export const interviewListQuerySchema = paginationQuerySchema
+  .extend({
+    applicantId: nonEmptyString.optional(),
+    interviewerId: nonEmptyString.optional(),
+    stage: interviewStageSchema.optional(),
+    status: interviewStatusSchema.optional(),
+    type: interviewTypeSchema.optional(),
+    search: nonEmptyString.optional(),
+    dateFrom: z.coerce.date().optional(),
+    dateTo: z.coerce.date().optional(),
+  })
+  .refine(
+    (query) =>
+      query.dateFrom === undefined || query.dateTo === undefined || query.dateFrom <= query.dateTo,
+    {
+      path: ['dateTo'],
+      message: 'dateTo must be on or after dateFrom',
+    },
+  );
 
-export const myInterviewListQuerySchema = paginationQuerySchema;
+export const myInterviewListQuerySchema = paginationQuerySchema
+  .extend({
+    stage: interviewStageSchema.optional(),
+    status: interviewStatusSchema.optional(),
+    type: interviewTypeSchema.optional(),
+    search: nonEmptyString.optional(),
+    dateFrom: z.coerce.date().optional(),
+    dateTo: z.coerce.date().optional(),
+  })
+  .refine(
+    (query) =>
+      query.dateFrom === undefined || query.dateTo === undefined || query.dateFrom <= query.dateTo,
+    { path: ['dateTo'], message: 'dateTo must be on or after dateFrom' },
+  );

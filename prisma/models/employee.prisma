@@ -10,8 +10,7 @@ model Employee {
     departments Department[]
     departmentMembers DepartmentMember[]
     employeeDocsStatus EmployeeDocumentStatus?
-    employeeDocs EmployeeDocument?
-    submittedId SubmittedId?
+    submittedIds SubmittedId[]
 
     @@index([userId])
 }

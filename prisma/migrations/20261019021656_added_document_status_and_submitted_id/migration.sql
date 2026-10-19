@@ -1,3 +1,6 @@
+-- CreateEnum
+CREATE TYPE "AcceptedIdType" AS ENUM ('PHILIPPINE_NATIONAL_ID', 'PASSPORT', 'DRIVERS_LICENSE', 'UMID', 'PRC_ID', 'VOTERS_ID', 'POSTAL_ID');
+
 -- CreateTable
 CREATE TABLE "ApplicantScore" (
     "id" TEXT NOT NULL,
@@ -86,21 +89,8 @@ CREATE TABLE "EmployeeDocumentStatus" (
     "psa" TEXT NOT NULL,
     "birForm" TEXT,
     "nbiClearance" TEXT NOT NULL,
-    "governmentNumber" TEXT NOT NULL,
 
     CONSTRAINT "EmployeeDocumentStatus_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "EmployeeDocument" (
-    "id" TEXT NOT NULL,
-    "employeeId" TEXT NOT NULL,
-    "sss" TEXT,
-    "philhealth" TEXT,
-    "pagIbig" TEXT,
-    "tin" TEXT,
-
-    CONSTRAINT "EmployeeDocument_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -136,15 +126,34 @@ CREATE TABLE "Interview" (
     "interviewerId" TEXT,
     "stage" VARCHAR(30) NOT NULL,
     "date" TIMESTAMPTZ(3) NOT NULL,
+    "durationMinutes" INTEGER NOT NULL DEFAULT 60,
+    "timeZone" VARCHAR(64) NOT NULL DEFAULT 'Asia/Manila',
     "type" VARCHAR(20) NOT NULL,
     "status" VARCHAR(20) NOT NULL DEFAULT 'SCHEDULED',
     "location" VARCHAR(255),
+    "meetingUrl" VARCHAR(2048),
     "instructions" TEXT,
     "notes" TEXT,
     "createdAt" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMPTZ(3) NOT NULL,
 
     CONSTRAINT "Interview_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "InterviewEvaluation" (
+    "id" TEXT NOT NULL,
+    "interviewId" TEXT NOT NULL,
+    "evaluatorId" TEXT NOT NULL,
+    "ratings" JSONB NOT NULL,
+    "recommendation" VARCHAR(20) NOT NULL,
+    "strengths" TEXT,
+    "concerns" TEXT,
+    "comments" TEXT,
+    "createdAt" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMPTZ(3) NOT NULL,
+
+    CONSTRAINT "InterviewEvaluation_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -169,9 +178,9 @@ CREATE TABLE "JobPost" (
 CREATE TABLE "SubmittedId" (
     "id" TEXT NOT NULL,
     "employeeId" TEXT NOT NULL,
-    "ValidId" INTEGER NOT NULL,
-    "imageUrl" TEXT NOT NULL,
-    "uploadedAt" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "idType" "AcceptedIdType" NOT NULL,
+    "notes" TEXT,
+    "presentedAt" TIMESTAMPTZ(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "SubmittedId_pkey" PRIMARY KEY ("id")
 );
@@ -190,14 +199,6 @@ CREATE TABLE "User" (
     "updatedAt" TIMESTAMPTZ(3),
 
     CONSTRAINT "User_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "ValidId" (
-    "id" SERIAL NOT NULL,
-    "name" TEXT NOT NULL,
-
-    CONSTRAINT "ValidId_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex
@@ -243,9 +244,6 @@ CREATE INDEX "Department_departmentHeadId_idx" ON "Department"("departmentHeadId
 CREATE UNIQUE INDEX "EmployeeDocumentStatus_employeeId_key" ON "EmployeeDocumentStatus"("employeeId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "EmployeeDocument_employeeId_key" ON "EmployeeDocument"("employeeId");
-
--- CreateIndex
 CREATE INDEX "Employee_userId_idx" ON "Employee"("userId");
 
 -- CreateIndex
@@ -261,7 +259,13 @@ CREATE INDEX "Interview_applicantId_date_idx" ON "Interview"("applicantId", "dat
 CREATE INDEX "Interview_status_date_idx" ON "Interview"("status", "date");
 
 -- CreateIndex
-CREATE INDEX "Interview_interviewerId_idx" ON "Interview"("interviewerId");
+CREATE INDEX "Interview_interviewerId_date_idx" ON "Interview"("interviewerId", "date");
+
+-- CreateIndex
+CREATE INDEX "InterviewEvaluation_evaluatorId_idx" ON "InterviewEvaluation"("evaluatorId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "InterviewEvaluation_interviewId_evaluatorId_key" ON "InterviewEvaluation"("interviewId", "evaluatorId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "JobPost_hiringRequestId_key" ON "JobPost"("hiringRequestId");
@@ -273,7 +277,10 @@ CREATE INDEX "JobPost_status_createdAt_idx" ON "JobPost"("status", "createdAt");
 CREATE INDEX "JobPost_approvedBy_idx" ON "JobPost"("approvedBy");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "SubmittedId_employeeId_key" ON "SubmittedId"("employeeId");
+CREATE INDEX "SubmittedId_employeeId_idx" ON "SubmittedId"("employeeId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "SubmittedId_employeeId_idType_key" ON "SubmittedId"("employeeId", "idType");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
@@ -309,9 +316,6 @@ ALTER TABLE "Department" ADD CONSTRAINT "Department_departmentHeadId_fkey" FOREI
 ALTER TABLE "EmployeeDocumentStatus" ADD CONSTRAINT "EmployeeDocumentStatus_employeeId_fkey" FOREIGN KEY ("employeeId") REFERENCES "Employee"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "EmployeeDocument" ADD CONSTRAINT "EmployeeDocument_employeeId_fkey" FOREIGN KEY ("employeeId") REFERENCES "Employee"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
 ALTER TABLE "Employee" ADD CONSTRAINT "Employee_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE NO ACTION ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -327,6 +331,12 @@ ALTER TABLE "Interview" ADD CONSTRAINT "Interview_applicantId_fkey" FOREIGN KEY 
 ALTER TABLE "Interview" ADD CONSTRAINT "Interview_interviewerId_fkey" FOREIGN KEY ("interviewerId") REFERENCES "User"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "InterviewEvaluation" ADD CONSTRAINT "InterviewEvaluation_interviewId_fkey" FOREIGN KEY ("interviewId") REFERENCES "Interview"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "InterviewEvaluation" ADD CONSTRAINT "InterviewEvaluation_evaluatorId_fkey" FOREIGN KEY ("evaluatorId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "JobPost" ADD CONSTRAINT "JobPost_hiringRequestId_fkey" FOREIGN KEY ("hiringRequestId") REFERENCES "HiringRequest"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -334,6 +344,3 @@ ALTER TABLE "JobPost" ADD CONSTRAINT "JobPost_approvedBy_fkey" FOREIGN KEY ("app
 
 -- AddForeignKey
 ALTER TABLE "SubmittedId" ADD CONSTRAINT "SubmittedId_employeeId_fkey" FOREIGN KEY ("employeeId") REFERENCES "Employee"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "SubmittedId" ADD CONSTRAINT "SubmittedId_ValidId_fkey" FOREIGN KEY ("ValidId") REFERENCES "ValidId"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

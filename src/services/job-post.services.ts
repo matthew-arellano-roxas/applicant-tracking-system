@@ -1,4 +1,4 @@
-import { PrismaClient } from '@/generated/prisma/client';
+import { Prisma, PrismaClient } from '@/generated/prisma/client';
 import type { PaginationQuery } from '@/schemas/pagination.schema';
 import { getPaginationMetadata } from '@/utils/pagination';
 import { ApiError } from '@/utils/ApiError';
@@ -17,7 +17,6 @@ export interface CreateJobPost {
 }
 
 export type JobPostService = ReturnType<typeof createJobPostService>;
-
 
 const checkSalary = (min?: number | null, max?: number | null) => {
   if (min != null && max != null && min > max) {
@@ -57,9 +56,40 @@ export const createJobPostService = (db: PrismaClient) => {
     });
   };
 
-  const list = (filter: { status?: Status; page: number; limit: number }) => {
-    const { status, page, limit } = filter;
-    const where = { ...(status ? { status } : {}), deletedAt: null };
+  const list = (filter: {
+    status?: Status;
+    search?: string;
+    employmentType?: EmploymentType;
+    departmentId?: string;
+    campusId?: number;
+    page: number;
+    limit: number;
+  }) => {
+    const { status, search, employmentType, departmentId, campusId, page, limit } = filter;
+    const where: Prisma.JobPostWhereInput = {
+      ...(status ? { status } : {}),
+      ...(employmentType ? { employmentType } : {}),
+      ...(departmentId || campusId
+        ? {
+            hiringRequest: {
+              is: {
+                ...(departmentId ? { departmentId } : {}),
+                ...(campusId ? { campusId } : {}),
+              },
+            },
+          }
+        : {}),
+      ...(search
+        ? {
+            OR: [
+              { title: { contains: search, mode: 'insensitive' } },
+              { description: { contains: search, mode: 'insensitive' } },
+              { hiringRequest: { is: { position: { contains: search, mode: 'insensitive' } } } },
+            ],
+          }
+        : {}),
+      deletedAt: null,
+    };
     const pagination: PaginationQuery = { page, limit };
     return Promise.all([
       db.jobPost.findMany({

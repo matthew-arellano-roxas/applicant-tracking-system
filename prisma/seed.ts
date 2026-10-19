@@ -147,26 +147,30 @@ async function seed() {
       position: 'Human Resources Manager',
       isTeaching: false,
       department: 'Human Resources',
+      idTypes: ['PHILIPPINE_NATIONAL_ID', 'PASSPORT'],
     },
     {
       email: 'matthewroxasyt@gmail.com',
       position: 'IT Faculty Interviewer',
       isTeaching: false,
       department: 'College of Information Technology',
+      idTypes: ['PASSPORT', 'DRIVERS_LICENSE'],
     },
     {
       email: 'dean@example.edu',
       position: 'Dean of the College of Education',
       isTeaching: true,
       department: 'College of Education',
+      idTypes: ['PRC_ID', 'PHILIPPINE_NATIONAL_ID'],
     },
     {
       email: 'department.head@example.edu',
       position: 'IT Department Chair',
       isTeaching: false,
       department: 'College of Information Technology',
+      idTypes: ['UMID'],
     },
-  ];
+  ] as const;
 
   const employeeByEmail = new Map<string, { id: string }>();
   for (const employeeData of employeeSeeds) {
@@ -183,7 +187,6 @@ async function seed() {
             position: employeeData.position,
             employmentType: 'FULL_TIME',
             isTeaching: employeeData.isTeaching,
-            departments: { set: [{ id: department.id }] },
           },
         })
       : await prisma.employee.create({
@@ -192,55 +195,52 @@ async function seed() {
             position: employeeData.position,
             employmentType: 'FULL_TIME',
             isTeaching: employeeData.isTeaching,
-            departments: { connect: { id: department.id } },
           },
         });
 
     employeeByEmail.set(employeeData.email, { id: employee.id });
 
-    await prisma.employeeDocument.upsert({
-      where: { employeeId: employee.id },
-      update: {
-        sss: 'SEED-SSS',
-        philhealth: 'SEED-PHILHEALTH',
-        pagIbig: 'SEED-PAGIBIG',
-        tin: 'SEED-TIN',
-      },
-      create: {
-        employeeId: employee.id,
-        sss: 'SEED-SSS',
-        philhealth: 'SEED-PHILHEALTH',
-        pagIbig: 'SEED-PAGIBIG',
-        tin: 'SEED-TIN',
-      },
+    await prisma.departmentMember.upsert({
+      where: { departmentId_employeeId: { departmentId: department.id, employeeId: employee.id } },
+      update: {},
+      create: { departmentId: department.id, employeeId: employee.id },
     });
+
+    // Seed a mix of checklist statuses; Taylor has one of the required two IDs so HR can test adding the second.
+    const validIdStatus = employeeData.idTypes.length === 2 ? 'complete' : 'pending';
     await prisma.employeeDocumentStatus.upsert({
       where: { employeeId: employee.id },
       update: {
-        validId: 'COMPLETE',
-        tin: 'COMPLETE',
-        sss: 'COMPLETE',
-        philhealth: 'COMPLETE',
-        pagIbig: 'COMPLETE',
-        medicalRecord: 'PENDING',
-        psa: 'PENDING',
-        birForm: 'PENDING',
-        nbiClearance: 'PENDING',
-        governmentNumber: 'COMPLETE',
+        validId: validIdStatus,
+        tin: 'complete',
+        sss: 'complete',
+        philhealth: 'complete',
+        pagIbig: 'complete',
+        medicalRecord: 'pending',
+        psa: 'pending',
+        birForm: 'pending',
+        nbiClearance: 'pending',
       },
       create: {
         employeeId: employee.id,
-        validId: 'COMPLETE',
-        tin: 'COMPLETE',
-        sss: 'COMPLETE',
-        philhealth: 'COMPLETE',
-        pagIbig: 'COMPLETE',
-        medicalRecord: 'PENDING',
-        psa: 'PENDING',
-        birForm: 'PENDING',
-        nbiClearance: 'PENDING',
-        governmentNumber: 'COMPLETE',
+        validId: validIdStatus,
+        tin: 'complete',
+        sss: 'complete',
+        philhealth: 'complete',
+        pagIbig: 'complete',
+        medicalRecord: 'pending',
+        psa: 'pending',
+        birForm: 'pending',
+        nbiClearance: 'pending',
       },
+    });
+    await prisma.submittedId.deleteMany({ where: { employeeId: employee.id } });
+    await prisma.submittedId.createMany({
+      data: employeeData.idTypes.map((idType) => ({
+        employeeId: employee.id,
+        idType,
+        notes: 'Seed test record: original ID presented and checked in person.',
+      })),
     });
   }
 
@@ -262,21 +262,6 @@ async function seed() {
     where: { id: departmentByName.get('College of Education')!.id },
     data: { departmentHeadId: academicDean.id },
   });
-
-  const validIdName = 'Philippine National ID';
-  const existingValidId = await prisma.validId.findFirst({ where: { name: validIdName } });
-  const validId = existingValidId ?? (await prisma.validId.create({ data: { name: validIdName } }));
-  for (const employee of employeeByEmail.values()) {
-    await prisma.submittedId.upsert({
-      where: { employeeId: employee.id },
-      update: { ValidId: validId.id, imageUrl: 'https://example.com/seed/employee-id.png' },
-      create: {
-        employeeId: employee.id,
-        ValidId: validId.id,
-        imageUrl: 'https://example.com/seed/employee-id.png',
-      },
-    });
-  }
 
   const hiringRequestSeeds = [
     {
@@ -538,6 +523,10 @@ async function seed() {
   console.log(
     `Seeded ${users.length} users with password auth, ${campuses.length} campuses, ${departmentNames.length} departments, employees, hiring requests, job posts, applicants, and related records.`,
   );
+  console.log(
+    'Employee checklist examples: sign in as matthewroxasyt@gmail.com to test GET /employees/me/document-status; sign in as matthewroxas83@gmail.com to add Taylor Santos’s second ID with POST /employees/{employeeId}/document-status/id-records.',
+  );
+  console.log(`Development password for seeded accounts: ${seedPassword}`);
 }
 
 seed()

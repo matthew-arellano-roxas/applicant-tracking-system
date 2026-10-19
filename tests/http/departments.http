@@ -9,6 +9,19 @@ GET {{baseUrl}}/departments?page={{page}}&limit={{limit}}
 ### List departments (page 2)
 GET {{baseUrl}}/departments?page=2&limit={{limit}}
 
+### Find the College of Information Technology by name
+# @name findItDepartment
+GET {{baseUrl}}/departments?name=College%20of%20Information%20Technology&page={{page}}&limit={{limit}}
+
+### Search departments by a partial name
+GET {{baseUrl}}/departments?search=Information&page={{page}}&limit={{limit}}
+
+### Only departments with an assigned department head
+GET {{baseUrl}}/departments?hasDepartmentHead=true&page={{page}}&limit={{limit}}
+
+### Find departments by name that have a department head
+GET {{baseUrl}}/departments?name=College%20of%20Information%20Technology&hasDepartmentHead=true&page={{page}}&limit={{limit}}
+
 ### Create department
 # @name createDepartment
 POST {{baseUrl}}/departments
@@ -18,14 +31,11 @@ Content-Type: application/json
   "name": "Psychology"
 }
 
-### Use created department ID in this file
-@departmentId = {{createDepartment.response.body.$.department.id}}
-
 ### Get department
-GET {{baseUrl}}/departments/{{departmentId}}
+GET {{baseUrl}}/departments/{{createDepartment.response.body.$.department.id}}
 
 ### Update department
-PATCH {{baseUrl}}/departments/{{departmentId}}
+PATCH {{baseUrl}}/departments/{{createDepartment.response.body.$.department.id}}
 Content-Type: application/json
 
 {
@@ -33,7 +43,7 @@ Content-Type: application/json
 }
 
 ### Assign department head
-PATCH {{baseUrl}}/departments/{{departmentId}}/head
+PATCH {{baseUrl}}/departments/{{createDepartment.response.body.$.department.id}}/head
 Content-Type: application/json
 
 {
@@ -41,16 +51,19 @@ Content-Type: application/json
 }
 
 ### Remove department head
-DELETE {{baseUrl}}/departments/{{departmentId}}/head
+DELETE {{baseUrl}}/departments/{{createDepartment.response.body.$.department.id}}/head
 
 ### List department members (page 1)
-GET {{baseUrl}}/departments/{{departmentId}}/members?page={{page}}&limit={{limit}}
+GET {{baseUrl}}/departments/{{createDepartment.response.body.$.department.id}}/members?page={{page}}&limit={{limit}}
 
 ### List department members (page 2)
-GET {{baseUrl}}/departments/{{departmentId}}/members?page=2&limit={{limit}}
+GET {{baseUrl}}/departments/{{createDepartment.response.body.$.department.id}}/members?page=2&limit={{limit}}
+
+### Search department members by name/email/position and filter teaching staff
+GET {{baseUrl}}/departments/{{createDepartment.response.body.$.department.id}}/members?search=matthew&isTeaching=true&page={{page}}&limit={{limit}}
 
 ### Add department member
-POST {{baseUrl}}/departments/{{departmentId}}/members
+POST {{baseUrl}}/departments/{{createDepartment.response.body.$.department.id}}/members
 Content-Type: application/json
 
 {
@@ -58,7 +71,7 @@ Content-Type: application/json
 }
 
 ### Remove department member
-DELETE {{baseUrl}}/departments/{{departmentId}}/members/{{employeeId}}
+DELETE {{baseUrl}}/departments/{{createDepartment.response.body.$.department.id}}/members/{{employeeId}}
 
 ### Delete department
-DELETE {{baseUrl}}/departments/{{departmentId}}
+DELETE {{baseUrl}}/departments/{{createDepartment.response.body.$.department.id}}

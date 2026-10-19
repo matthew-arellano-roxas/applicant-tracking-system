@@ -1,4 +1,4 @@
-import { PrismaClient } from '@/generated/prisma/client';
+import { Prisma, PrismaClient } from '@/generated/prisma/client';
 import type { PaginationQuery } from '@/schemas/pagination.schema';
 import { getPaginationMetadata } from '@/utils/pagination';
 import { ApiError } from '@/utils/ApiError';
@@ -25,11 +25,27 @@ export type UpdateDepartmentInput = Partial<CreateDepartmentInput>;
 
 export type DepartmentService = {
   getDepartmentById: (id: string) => Promise<Department>;
-  listDepartments: (pagination: PaginationQuery) => Promise<{ items: Department[]; pagination: ReturnType<typeof getPaginationMetadata> }>;
+  listDepartments: (
+    filter: PaginationQuery & {
+      name?: string;
+      search?: string;
+      departmentHeadId?: string;
+      hasDepartmentHead?: boolean;
+    },
+  ) => Promise<{ items: Department[]; pagination: ReturnType<typeof getPaginationMetadata> }>;
   createDepartment: (input: CreateDepartmentInput) => Promise<Department>;
   updateDepartment: (id: string, input: UpdateDepartmentInput) => Promise<Department>;
   deleteDepartment: (id: string) => Promise<Department>;
-  listMembers: (departmentId: string, pagination: PaginationQuery) => Promise<{ items: DepartmentMember[]; pagination: ReturnType<typeof getPaginationMetadata> }>;
+  listMembers: (
+    departmentId: string,
+    filter: PaginationQuery & {
+      employeeId?: string;
+      search?: string;
+      position?: string;
+      employmentType?: string;
+      isTeaching?: boolean;
+    },
+  ) => Promise<{ items: DepartmentMember[]; pagination: ReturnType<typeof getPaginationMetadata> }>;
   addMember: (departmentId: string, employeeId: string) => Promise<DepartmentMember>;
   removeMember: (departmentId: string, employeeId: string) => Promise<{ count: number }>;
   assignDepartmentHead: (departmentId: string, employeeId: string) => Promise<Department>;
@@ -48,15 +64,31 @@ export const createDepartmentService = (prisma: PrismaClient): DepartmentService
     return department;
   }
 
-  async function listDepartments(pagination: PaginationQuery) {
+  async function listDepartments(
+    filter: PaginationQuery & {
+      name?: string;
+      search?: string;
+      departmentHeadId?: string;
+      hasDepartmentHead?: boolean;
+    },
+  ) {
+    const { name, search, departmentHeadId, hasDepartmentHead, ...pagination } = filter;
     const { page, limit } = pagination;
+    const clauses: Prisma.DepartmentWhereInput[] = [];
+    if (name) clauses.push({ name: { contains: name, mode: 'insensitive' } });
+    if (search) clauses.push({ name: { contains: search, mode: 'insensitive' } });
+    if (departmentHeadId) clauses.push({ departmentHeadId });
+    if (hasDepartmentHead === true) clauses.push({ departmentHeadId: { not: null } });
+    if (hasDepartmentHead === false) clauses.push({ departmentHeadId: null });
+    const where: Prisma.DepartmentWhereInput = clauses.length ? { AND: clauses } : {};
     const [items, total] = await Promise.all([
       prisma.department.findMany({
+        where,
         orderBy: { name: 'asc' },
         skip: (page - 1) * limit,
         take: limit,
       }),
-      prisma.department.count(),
+      prisma.department.count({ where }),
     ]);
     return { items, pagination: getPaginationMetadata(pagination, total) };
   }
@@ -81,22 +113,64 @@ export const createDepartmentService = (prisma: PrismaClient): DepartmentService
     await getDepartmentById(id);
 
     const requestCount = await prisma.hiringRequest.count({ where: { departmentId: id } });
-    if (requestCount > 0) throw ApiError.conflict('Cannot delete a department with hiring requests');
+    if (requestCount > 0)
+      throw ApiError.conflict('Cannot delete a department with hiring requests');
 
     return prisma.department.delete({ where: { id } });
   }
 
-  async function listMembers(departmentId: string, pagination: PaginationQuery) {
+  async function listMembers(
+    departmentId: string,
+    filter: PaginationQuery & {
+      employeeId?: string;
+      search?: string;
+      position?: string;
+      employmentType?: string;
+      isTeaching?: boolean;
+    },
+  ) {
     await getDepartmentById(departmentId);
+    const { employeeId, search, position, employmentType, isTeaching, ...pagination } = filter;
     const { page, limit } = pagination;
+    const where: Prisma.DepartmentMemberWhereInput = {
+      departmentId,
+      ...(employeeId ? { employeeId } : {}),
+      ...(position || employmentType || isTeaching !== undefined || search
+        ? {
+            employee: {
+              ...(position ? { position: { contains: position, mode: 'insensitive' } } : {}),
+              ...(employmentType ? { employmentType } : {}),
+              ...(isTeaching === undefined ? {} : { isTeaching }),
+              ...(search
+                ? {
+                    user: {
+                      OR: [
+                        { firstName: { contains: search, mode: 'insensitive' } },
+                        { lastName: { contains: search, mode: 'insensitive' } },
+                        { email: { contains: search, mode: 'insensitive' } },
+                      ],
+                    },
+                  }
+                : {}),
+            },
+          }
+        : {}),
+    };
     const [items, total] = await Promise.all([
       prisma.departmentMember.findMany({
-        where: { departmentId },
+        where,
+        include: {
+          employee: {
+            include: {
+              user: { select: { id: true, firstName: true, lastName: true, email: true } },
+            },
+          },
+        },
         orderBy: { id: 'asc' },
         skip: (page - 1) * limit,
         take: limit,
       }),
-      prisma.departmentMember.count({ where: { departmentId } }),
+      prisma.departmentMember.count({ where }),
     ]);
     return { items, pagination: getPaginationMetadata(pagination, total) };
   }

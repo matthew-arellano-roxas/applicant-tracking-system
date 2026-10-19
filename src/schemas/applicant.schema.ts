@@ -9,8 +9,22 @@ export const applicationIdParamsSchema = z.object({ id: nonEmptyString });
 export const updateApplicationStatusBodySchema = z.object({
   status: z.enum(Object.values(APPLICANT_STATUS) as [string, ...string[]]),
 });
-export const applicationListQuerySchema = paginationQuerySchema.extend({
-  jobPostId: nonEmptyString.optional(),
-  status: nonEmptyString.optional(),
-  scoreStatus: z.enum(['PENDING', 'PROCESSING', 'COMPLETED', 'FAILED']).optional(),
-});
+export const applicationListQuerySchema = paginationQuerySchema
+  .extend({
+    jobPostId: nonEmptyString.optional(),
+    status: z.enum(Object.values(APPLICANT_STATUS) as [string, ...string[]]).optional(),
+    scoreStatus: z.enum(['PENDING', 'PROCESSING', 'COMPLETED', 'FAILED']).optional(),
+    search: nonEmptyString.optional(),
+    minScore: z.coerce.number().min(0).max(100).optional(),
+    maxScore: z.coerce.number().min(0).max(100).optional(),
+  })
+  .refine(
+    (query) =>
+      query.minScore === undefined ||
+      query.maxScore === undefined ||
+      query.minScore <= query.maxScore,
+    {
+      path: ['maxScore'],
+      message: 'maxScore must be greater than or equal to minScore',
+    },
+  );

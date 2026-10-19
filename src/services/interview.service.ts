@@ -52,6 +52,10 @@ export type InterviewListFilter = {
   interviewerId?: string;
   stage?: InterviewStage;
   status?: InterviewStatus;
+  type?: InterviewType;
+  search?: string;
+  dateFrom?: Date;
+  dateTo?: Date;
   page?: number;
   limit?: number;
 };
@@ -253,10 +257,31 @@ export const createInterviewService = (db: PrismaClient) => {
   };
 
   const list = async (filter: InterviewListFilter = {}) => {
-    const { page = 1, limit = 20, applicantUserId, ...filters } = filter;
+    const { page = 1, limit = 20, applicantUserId, search, dateFrom, dateTo, ...filters } = filter;
     const where: Prisma.InterviewWhereInput = {
       ...filters,
       ...(applicantUserId ? { applicant: { userId: applicantUserId } } : {}),
+      ...(dateFrom || dateTo
+        ? {
+            date: {
+              ...(dateFrom ? { gte: dateFrom } : {}),
+              ...(dateTo ? { lte: dateTo } : {}),
+            },
+          }
+        : {}),
+      ...(search
+        ? {
+            applicant: {
+              ...(applicantUserId ? { userId: applicantUserId } : {}),
+              OR: [
+                { user: { is: { firstName: { contains: search, mode: 'insensitive' } } } },
+                { user: { is: { lastName: { contains: search, mode: 'insensitive' } } } },
+                { user: { is: { email: { contains: search, mode: 'insensitive' } } } },
+                { jobPost: { is: { title: { contains: search, mode: 'insensitive' } } } },
+              ],
+            },
+          }
+        : {}),
     };
 
     const [items, total] = await Promise.all([

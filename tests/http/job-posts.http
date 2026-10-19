@@ -1,5 +1,7 @@
 @baseUrl = http://localhost:3000
 @hiringRequestId = replace-with-approved-hiring-request-id
+@departmentId = replace-with-department-id
+@campusId = 1
 @page = 1
 @limit = 10
 
@@ -8,6 +10,9 @@ GET {{baseUrl}}/job-posts?status=OPEN&page={{page}}&limit={{limit}}
 
 ### List open job posts (page 2)
 GET {{baseUrl}}/job-posts?status=OPEN&page=2&limit={{limit}}
+
+### Search job posts and filter by department/campus
+GET {{baseUrl}}/job-posts?search=teacher&departmentId={{departmentId}}&campusId=1&status=OPEN&page={{page}}&limit={{limit}}
 
 ### Create job post (hiring request must be approved)
 # @name createJobPost

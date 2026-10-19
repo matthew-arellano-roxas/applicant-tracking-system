@@ -11,5 +11,4 @@ model EmployeeDocumentStatus{
     psa String
     birForm String?
     nbiClearance String
-    governmentNumber String
 }
