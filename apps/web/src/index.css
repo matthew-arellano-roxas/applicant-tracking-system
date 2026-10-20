@@ -130,6 +130,7 @@
 
 .app-sidebar-scroll,
 .app-main-scroll {
+  scrollbar-gutter: stable;
   scrollbar-width: thin;
   scrollbar-color: transparent transparent;
 }
@@ -140,6 +141,34 @@
 
 .app-main-scroll:hover {
   scrollbar-color: var(--border) var(--background);
+}
+
+.app-menu-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+
+.app-menu-scroll:hover {
+  scrollbar-color: var(--border) transparent;
+}
+
+.app-menu-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.app-menu-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.app-menu-scroll::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  border-radius: 9999px;
+  background: transparent;
+  background-clip: content-box;
+}
+
+.app-menu-scroll:hover::-webkit-scrollbar-thumb {
+  background-color: var(--border);
 }
 
 .app-sidebar-scroll::-webkit-scrollbar,
@@ -179,4 +208,55 @@
   html {
     @apply font-sans;
     }
+}
+
+.rich-text-editor:empty::before {
+  color: var(--muted-foreground);
+  content: attr(data-placeholder);
+  pointer-events: none;
+}
+
+.rich-text-editor:has(> p:only-child:empty)::before {
+  color: var(--muted-foreground);
+  content: attr(data-placeholder);
+  pointer-events: none;
+}
+
+.rich-text-editor p,
+.rich-text-editor h2,
+.rich-text-editor ul,
+.rich-text-editor ol {
+  margin: 0.25rem 0;
+}
+
+.rich-text-editor h2 {
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+.rich-text-editor ul,
+.rich-text-editor ol {
+  padding-left: 1.5rem;
+}
+
+.rich-text-editor ul { list-style: disc; }
+.rich-text-editor ol { list-style: decimal; }
+
+.number-input-no-spinner::-webkit-inner-spin-button,
+.number-input-no-spinner::-webkit-outer-spin-button {
+  margin: 0;
+  appearance: none;
+}
+
+.number-input-no-spinner {
+  appearance: textfield;
+}
+
+.filter-select {
+  appearance: none;
+  padding-right: 2.5rem;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='m7 10 5 5 5-5' fill='none' stroke='black' stroke-linecap='round' stroke-linejoin='round' stroke-width='2'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 1rem;
 }

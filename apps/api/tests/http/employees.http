@@ -10,6 +10,9 @@ GET {{baseUrl}}/departments?name=College%20of%20Information%20Technology
 ### List employees (page 1)
 GET {{baseUrl}}/employees?page={{page}}&limit={{limit}}
 
+### HR or ADMIN: find users who do not yet have an employee record
+GET {{baseUrl}}/employees/available-users?search=Taylor&page=1&limit=20
+
 ### List employees (page 2)
 GET {{baseUrl}}/employees?page=2&limit={{limit}}
 

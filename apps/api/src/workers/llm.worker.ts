@@ -36,6 +36,10 @@ const processScoringJob = async (job: Job<ScoreApplicationJob>) => {
 
   const result = await scoreApplicant(applicantId, cvText);
   await prisma.applicant.update({ where: { id: applicantId }, data: { scoreStatus: 'COMPLETED' } });
+  await prisma.applicant.updateMany({
+    where: { id: applicantId, status: 'APPLIED' },
+    data: { status: 'SCREENED' },
+  });
   return result;
 };
 

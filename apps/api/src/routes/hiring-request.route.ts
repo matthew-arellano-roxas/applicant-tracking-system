@@ -52,7 +52,7 @@ hiringRequestRoute.patch(
 );
 hiringRequestRoute.patch(
   '/:id/status',
-  requireRole(UserRole.Admin, UserRole.Hr, UserRole.Dean),
+  requireRole(UserRole.Admin, UserRole.Hr, UserRole.Dean, UserRole.DepartmentHead),
   validateRequest(hiringRequestIdParamsSchema, 'params'),
   validateRequest(updateHiringRequestStatusBodySchema),
   updateHiringRequestStatus,

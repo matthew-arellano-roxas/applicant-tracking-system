@@ -1,18 +1,9 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Bell, ChevronDown, ChevronRight, LogOut, Menu, Search, X } from 'lucide-react';
 import { Link } from 'react-router';
 import type { CurrentUser } from '@ats/shared-types';
 import { getUserInitials, getUserName } from '@/lib/userDisplay';
-
-const searchablePages = [
-  { label: 'Overview', to: '/' },
-  { label: 'Applicants', to: '/applicants' },
-  { label: 'Job openings', to: '/jobs' },
-  { label: 'Hiring team', to: '/team' },
-  { label: 'Departments', to: '/departments' },
-  { label: 'Activity', to: '/activity' },
-  { label: 'Settings', to: '/settings' },
-];
+import { getWorkspacePagesForRole } from '@/config/workspacePages';
 
 type AppHeaderProps = {
   pageName: string;
@@ -26,10 +17,8 @@ export function AppHeader({ pageName, user, onOpenNavigation, onLogout }: AppHea
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
   const [query, setQuery] = useState('');
-  const matches = useMemo(
-    () => searchablePages.filter((page) => page.label.toLowerCase().includes(query.trim().toLowerCase())),
-    [query],
-  );
+  const searchablePages = getWorkspacePagesForRole(user.role);
+  const matches = searchablePages.filter((page) => page.label.toLowerCase().includes(query.trim().toLowerCase()));
 
   useEffect(() => {
     function handleSearchShortcut(event: KeyboardEvent) {
@@ -107,7 +96,7 @@ export function AppHeader({ pageName, user, onOpenNavigation, onLogout }: AppHea
           </div>
           <div className="max-h-64 overflow-y-auto py-1">
             {matches.length ? matches.map((page) => (
-              <Link key={page.to} to={page.to} onClick={() => setSearchOpen(false)} className="block rounded-md px-3 py-2 text-sm hover:bg-accent">{page.label}</Link>
+              <Link key={page.path} to={page.path} onClick={() => setSearchOpen(false)} className="block rounded-md px-3 py-2 text-sm hover:bg-accent">{page.label}</Link>
             )) : <p className="px-3 py-4 text-center text-sm text-muted-foreground">No matching pages</p>}
           </div>
         </section>

@@ -7,3 +7,4 @@ export * from './employee.route';
 export * from './user.route';
 export * from './hiring-request.route';
 export * from './job-post.route';
+export * from './campus.route';

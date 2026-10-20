@@ -18,6 +18,7 @@
 - Use Tailwind CSS for styling and prefer utility classes over introducing separate CSS when practical.
 - Use Axios for HTTP requests from the web app; keep shared request configuration in a common client module instead of creating one-off clients in pages.
 - Follow separation of concerns: keep components focused on rendering, group related state and handlers together, and extract reusable stateful behavior into custom hooks and reusable pure logic into utility modules. Split components when a component or file becomes difficult to follow; avoid unrelated logic bundled into one component.
+- Use rich text editor for the job posting
 
 ## API conventions
 

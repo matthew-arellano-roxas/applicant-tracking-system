@@ -13,6 +13,7 @@ exports.updateApplicationStatusBodySchema = zod_1.z.object({
 exports.applicationListQuerySchema = pagination_schema_js_1.paginationQuerySchema
     .extend({
     jobPostId: nonEmptyString.optional(),
+    departmentId: nonEmptyString.optional(),
     status: zod_1.z.enum(Object.values(status_constant_js_1.APPLICANT_STATUS)).optional(),
     scoreStatus: zod_1.z.enum(['PENDING', 'PROCESSING', 'COMPLETED', 'FAILED']).optional(),
     search: nonEmptyString.optional(),

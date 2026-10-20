@@ -21,6 +21,10 @@ export declare const jobPostListQuerySchema: z.ZodObject<{
     }>>;
     departmentId: z.ZodOptional<z.ZodString>;
     campusId: z.ZodOptional<z.ZodCoercedNumber<unknown>>;
+    isTeaching: z.ZodOptional<z.ZodPipe<z.ZodEnum<{
+        true: "true";
+        false: "false";
+    }>, z.ZodTransform<boolean, "true" | "false">>>;
 }, z.core.$strip>;
 export declare const createJobPostBodySchema: z.ZodObject<{
     hiringRequestId: z.ZodString;

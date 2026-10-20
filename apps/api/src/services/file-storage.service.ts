@@ -57,7 +57,9 @@ export function createStorageService(config: StorageServiceConfig = {}): Storage
   const bucket = config.bucket ?? 'cvs';
   const maxSizeBytes = config.maxSizeBytes ?? 5 * 1024 * 1024; // 5 MB
   const signedDownloadTtl = config.signedDownloadTtl ?? 60; // seconds
-  const canViewAnyRole = config.canViewAnyRole ?? ['ADMIN', 'HR'];
+  // Keep this aligned with UserRole.Hr ('HUMAN_RESOURCE') so HR can access
+  // applicant CVs through the staff download endpoint.
+  const canViewAnyRole = config.canViewAnyRole ?? ['ADMIN', 'HUMAN_RESOURCE'];
   const allowedMimeTypes = config.allowedMimeTypes ?? DEFAULT_ALLOWED_TYPES;
 
   /**

@@ -4,23 +4,15 @@ import { AppHeader } from '@/components/AppHeader';
 import { AppSidebar } from '@/components/AppSidebar';
 import { useLogout } from '@/hooks/useLogout';
 import { useAuthStore } from '@/stores/authStore';
-
-const pageNames: Record<string, string> = {
-  '/': 'Overview',
-  '/applicants': 'Applicants',
-  '/jobs': 'Job openings',
-  '/team': 'Hiring team',
-  '/departments': 'Departments',
-  '/activity': 'Activity',
-  '/settings': 'Settings',
-};
+import { getWorkspacePage } from '@/config/workspacePages';
 
 export function AppLayout() {
   const [mobileNavigationOpen, setMobileNavigationOpen] = useState(false);
   const user = useAuthStore((state) => state.user);
   const location = useLocation();
   const logout = useLogout();
-  const pageName = pageNames[location.pathname] ?? 'Overview';
+  const page = getWorkspacePage(location.pathname);
+  const pageName = page?.label ?? 'Workspace';
 
   if (!user) return null;
 
@@ -44,8 +36,9 @@ export function AppLayout() {
         <div className="app-main-scroll flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain">
           <div className="border-b border-border bg-card px-4 py-6 sm:px-6 lg:px-8">
             <div className="mx-auto w-full max-w-[1400px]">
-              <div className="mb-2 text-xs font-medium text-primary">Workspace</div>
+              <div className="mb-2 text-xs font-medium text-primary">{user.role.replaceAll('_', ' ')}</div>
               <h1 className="text-3xl font-semibold tracking-tight">{pageName}</h1>
+              {page && <p className="mt-3 border-l-2 border-primary/40 pl-3 text-xs text-muted-foreground">{page.access}</p>}
             </div>
           </div>
 

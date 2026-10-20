@@ -65,6 +65,26 @@ export const listEmployees: RequestHandler = asyncHandler(async (req, res) => {
   });
 });
 
+export const listAvailableEmployeeUsers: RequestHandler = asyncHandler(async (req, res) => {
+  const page = Math.max(1, Number(req.query.page) || 1);
+  const limit = Math.min(100, Math.max(1, Number(req.query.limit) || 20));
+  const search = typeof req.query.search === 'string' ? req.query.search.trim() : '';
+  const where: Prisma.UserWhereInput = {
+    role: { in: ['APPLICANT', 'EMPLOYEE'] },
+    employees: { none: {} },
+    ...(search ? { OR: [
+      { firstName: { contains: search, mode: 'insensitive' } },
+      { lastName: { contains: search, mode: 'insensitive' } },
+      { email: { contains: search, mode: 'insensitive' } },
+    ] } : {}),
+  };
+  const [users, total] = await Promise.all([
+    prisma.user.findMany({ where, select: { id: true, firstName: true, lastName: true, email: true, role: true }, orderBy: { createdAt: 'desc' }, skip: (page - 1) * limit, take: limit }),
+    prisma.user.count({ where }),
+  ]);
+  return res.status(200).json({ users, pagination: { page, limit, total, totalPages: Math.ceil(total / limit) } });
+});
+
 export const getEmployee: RequestHandler = asyncHandler(async (req, res) => {
   const { id } = req.params as z.output<typeof employeeIdParamsSchema>;
   const employee = await prisma.employee.findUnique({

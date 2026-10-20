@@ -11,6 +11,7 @@ import {
   hiringRequestRoute,
   jobPostRoute,
   userRoute,
+  campusRoute,
 } from '@/routes';
 import passport from 'passport';
 import { passwordStrategy } from '@/strategies';
@@ -31,6 +32,7 @@ app.use('/applications', applicantRoute);
 app.use('/cvs', cvRoute);
 app.use('/interviews', interviewRoute);
 app.use('/departments', departmentRoute);
+app.use('/campuses', campusRoute);
 app.use('/employees', employeeRoute);
 app.use('/users', userRoute);
 app.use('/hiring-requests', hiringRequestRoute);

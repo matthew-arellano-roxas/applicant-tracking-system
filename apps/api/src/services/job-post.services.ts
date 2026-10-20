@@ -62,19 +62,21 @@ export const createJobPostService = (db: PrismaClient) => {
     employmentType?: EmploymentType;
     departmentId?: string;
     campusId?: number;
+    isTeaching?: boolean;
     page: number;
     limit: number;
   }) => {
-    const { status, search, employmentType, departmentId, campusId, page, limit } = filter;
+    const { status, search, employmentType, departmentId, campusId, isTeaching, page, limit } = filter;
     const where: Prisma.JobPostWhereInput = {
       ...(status ? { status } : {}),
       ...(employmentType ? { employmentType } : {}),
-      ...(departmentId || campusId
+      ...(departmentId || campusId || isTeaching !== undefined
         ? {
             hiringRequest: {
               is: {
                 ...(departmentId ? { departmentId } : {}),
                 ...(campusId ? { campusId } : {}),
+                ...(isTeaching !== undefined ? { isTeaching } : {}),
               },
             },
           }
@@ -94,6 +96,12 @@ export const createJobPostService = (db: PrismaClient) => {
     return Promise.all([
       db.jobPost.findMany({
         where,
+        include: {
+          hiringRequest: {
+            include: { department: { select: { id: true, name: true } }, campus: { select: { id: true, name: true, location: true } } },
+          },
+          _count: { select: { applicants: true } },
+        },
         orderBy: { createdAt: 'desc' },
         skip: (page - 1) * limit,
         take: limit,

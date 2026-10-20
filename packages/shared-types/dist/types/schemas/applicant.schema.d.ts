@@ -14,6 +14,7 @@ export declare const applicationListQuerySchema: z.ZodObject<{
     page: z.ZodDefault<z.ZodCoercedNumber<unknown>>;
     limit: z.ZodDefault<z.ZodCoercedNumber<unknown>>;
     jobPostId: z.ZodOptional<z.ZodString>;
+    departmentId: z.ZodOptional<z.ZodString>;
     status: z.ZodOptional<z.ZodEnum<{
         [x: string]: string;
     }>>;

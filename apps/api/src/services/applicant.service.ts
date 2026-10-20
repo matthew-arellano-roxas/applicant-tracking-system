@@ -34,6 +34,7 @@ export type ApplicationListFilter = {
   status?: string;
   scoreStatus?: string;
   jobPostId?: string;
+  departmentId?: string;
   userId?: string;
   search?: string;
   minScore?: number;
@@ -169,9 +170,10 @@ export const createApplicantService = (prisma: PrismaClient): ApplicationService
     items: ApplicantWithDetails[];
     pagination: ReturnType<typeof getPaginationMetadata>;
   }> {
-    const { page = 1, limit = 20, search, minScore, maxScore, ...filters } = filter;
+    const { page = 1, limit = 20, search, minScore, maxScore, departmentId, ...filters } = filter;
     const where: Prisma.ApplicantWhereInput = {
       ...filters,
+      ...(departmentId ? { jobPost: { hiringRequest: { departmentId } } } : {}),
       ...(search
         ? {
             OR: [

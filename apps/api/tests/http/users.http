@@ -1,5 +1,13 @@
 @baseUrl = http://localhost:3000
 @userId = replace-with-user-id
+@page = 1
+@limit = 10
+
+### ADMIN: list users
+GET {{baseUrl}}/users?page={{page}}&limit={{limit}}
+
+### ADMIN: search users by name or email and filter by role
+GET {{baseUrl}}/users?search=matthew&role=EMPLOYEE&page={{page}}&limit={{limit}}
 
 ### Assign user role (ADMIN only)
 PATCH {{baseUrl}}/users/{{userId}}/role

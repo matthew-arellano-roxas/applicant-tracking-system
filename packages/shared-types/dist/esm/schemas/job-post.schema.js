@@ -10,6 +10,7 @@ export const jobPostListQuerySchema = paginationQuerySchema.extend({
     employmentType: z.enum(['FULL_TIME', 'PART_TIME', 'BOTH AVAILABLE']).optional(),
     departmentId: nonEmptyString.optional(),
     campusId: z.coerce.number().int().positive().optional(),
+    isTeaching: z.enum(['true', 'false']).transform((value) => value === 'true').optional(),
 });
 const jobPostFieldsSchema = z.object({
     hiringRequestId: nonEmptyString,

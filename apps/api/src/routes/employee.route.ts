@@ -17,6 +17,7 @@ import {
   createEmployee,
   deleteEmployee,
   getEmployee,
+  listAvailableEmployeeUsers,
   listEmployees,
   updateEmployee,
 } from '@/controllers/employee.controller';
@@ -60,6 +61,12 @@ employeeRoute.patch(
   validateRequest(employeeDocumentStatusParamsSchema, 'params'),
   validateRequest(reviewEmployeeDocumentBodySchema),
   reviewEmployeeDocument,
+);
+employeeRoute.get(
+  '/available-users',
+  requireRole(...employeeManagerRoles),
+  validateRequest(employeeListQuerySchema, 'query'),
+  listAvailableEmployeeUsers,
 );
 employeeRoute.get(
   '/',

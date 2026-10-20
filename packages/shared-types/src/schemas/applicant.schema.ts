@@ -12,6 +12,7 @@ export const updateApplicationStatusBodySchema = z.object({
 export const applicationListQuerySchema = paginationQuerySchema
   .extend({
     jobPostId: nonEmptyString.optional(),
+    departmentId: nonEmptyString.optional(),
     status: z.enum(Object.values(APPLICANT_STATUS) as [string, ...string[]]).optional(),
     scoreStatus: z.enum(['PENDING', 'PROCESSING', 'COMPLETED', 'FAILED']).optional(),
     search: nonEmptyString.optional(),
