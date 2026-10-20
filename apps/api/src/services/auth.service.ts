@@ -11,6 +11,7 @@ const SALT_ROUNDS = 10;
 const TTL_SECONDS = OTP_EXPIRY_MINUTES * 60;
 
 const pendingKey = (email: string): string => `registration:${email}`;
+const passwordResetKey = (email: string): string => `password-reset:${email}`;
 
 const normalizeEmail = (email: string): string => {
   const trimmed = email.trim();
@@ -159,4 +160,66 @@ export const verifyRegistration = async (rawEmail: string, otp: string) => {
   await cache.del(pendingKey(email));
   logger.info({ email: maskedEmail, userId: user.id }, 'Registration completed; pending OTP cache cleared');
   return user;
+};
+
+type PendingPasswordReset = { userId: string; otpHash: string; attempts: number };
+
+export const startPasswordReset = async (rawEmail: string): Promise<void> => {
+  const email = normalizeEmail(rawEmail);
+  const maskedEmail = maskEmail(email);
+  const user = await prisma.user.findUnique({
+    where: { email },
+    select: { id: true, firstName: true, authIdentities: { select: { provider: true } } },
+  });
+
+  // Keep the public response identical whether or not this account exists.
+  if (!user || user.authIdentities?.provider !== 'PASSWORD') return;
+
+  const key = passwordResetKey(email);
+  await cache.del(key);
+  const otp = generateOtp();
+  const pending: PendingPasswordReset = {
+    userId: user.id,
+    otpHash: await bcrypt.hash(otp, SALT_ROUNDS),
+    attempts: 0,
+  };
+  await cache.set(key, JSON.stringify(pending), 'EX', TTL_SECONDS);
+
+  try {
+    await enqueueOtp(email, user.firstName, 'FORGOT_PASSWORD', otp);
+  } catch (error) {
+    await cache.del(key);
+    logger.error({ err: error, email: maskedEmail }, 'Could not queue password reset email');
+    throw error;
+  }
+};
+
+export const resetPassword = async (
+  rawEmail: string,
+  otp: string,
+  newPassword: string,
+): Promise<void> => {
+  const email = normalizeEmail(rawEmail);
+  const key = passwordResetKey(email);
+  const json = await cache.get(key);
+  if (!json) throw ApiError.badRequest('Reset code expired or invalid. Request a new code.');
+
+  const pending = JSON.parse(json) as PendingPasswordReset;
+  if (pending.attempts >= MAX_ATTEMPTS) {
+    await cache.del(key);
+    throw ApiError.tooManyRequests('Too many incorrect codes. Request a new reset code.');
+  }
+
+  if (!(await bcrypt.compare(otp, pending.otpHash))) {
+    pending.attempts += 1;
+    await cache.set(key, JSON.stringify(pending), 'KEEPTTL');
+    throw ApiError.badRequest('Reset code is invalid.');
+  }
+
+  const hashPassword = await bcrypt.hash(newPassword, SALT_ROUNDS);
+  await prisma.authIdentity.update({
+    where: { userId: pending.userId },
+    data: { hashPassword },
+  });
+  await cache.del(key);
 };

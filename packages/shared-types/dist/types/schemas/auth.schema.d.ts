@@ -15,6 +15,14 @@ export declare const verifyOtpBodySchema: z.ZodObject<{
     email: z.ZodPipe<z.ZodEmail, z.ZodTransform<string, string>>;
     otp: z.ZodString;
 }, z.core.$strip>;
+export declare const requestPasswordResetBodySchema: z.ZodObject<{
+    email: z.ZodPipe<z.ZodEmail, z.ZodTransform<string, string>>;
+}, z.core.$strip>;
+export declare const resetPasswordBodySchema: z.ZodObject<{
+    email: z.ZodPipe<z.ZodEmail, z.ZodTransform<string, string>>;
+    otp: z.ZodString;
+    password: z.ZodString;
+}, z.core.$strip>;
 export declare const refreshCookieSchema: z.ZodObject<{
     refresh_token: z.ZodString;
 }, z.core.$strip>;

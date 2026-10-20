@@ -6,6 +6,8 @@ import { humanizeEnum } from '@/utils/humanizeEnum';
 import { formatDate, formatTime } from '@/utils/formatDateTime';
 import type {
   EmailData,
+  ApplicationStatusEmailInput,
+  ApplicationStatusEmailTemplateData,
   InterviewEmailTemplateData,
   InterviewInvitationInput,
   OtpEmailTemplateData,
@@ -164,6 +166,8 @@ export const buildOtpEmail = (
       expiryMinutes: OTP_EXPIRY_MINUTES,
       year: new Date().getFullYear(),
       purpose,
+      heading: isRegistration ? 'Verify your email' : 'Reset your password',
+      message: getOtpMessage(isRegistration),
     },
   };
 };
@@ -203,6 +207,40 @@ export const buildShortlistedEmail = (
     subject: `Shortlisted: ${input.jobTitle}`,
     text: buildShortlistedText(templateData),
     templateFileName: 'shortlisted-email.html',
+    templateData,
+  };
+};
+
+export const buildApplicationStatusEmail = (
+  input: ApplicationStatusEmailInput,
+): EmailData<ApplicationStatusEmailTemplateData> => {
+  const applicationStatus = humanizeEnum(input.applicationStatus);
+  const templateData: ApplicationStatusEmailTemplateData = {
+    name: input.name,
+    jobTitle: input.jobTitle,
+    applicationStatus,
+    applicationReference: input.applicationReference,
+    companyName: COMPANY.name,
+    ctaUrl: input.ctaUrl,
+    senderName: COMPANY.emailSenderName,
+    year: new Date().getFullYear(),
+  };
+
+  return {
+    to: input.to,
+    subject: `Application update: ${applicationStatus} - ${input.jobTitle}`,
+    text: [
+      `Dear ${input.name},`,
+      '',
+      `Your application for ${input.jobTitle} at ${COMPANY.name} is now ${applicationStatus}.`,
+      `Application reference: ${input.applicationReference}`,
+      '',
+      'Sign in to the recruitment portal to view the latest details.',
+      ...(input.ctaUrl ? ['', `View your applications: ${input.ctaUrl}`] : []),
+      '',
+      `- ${COMPANY.emailSenderName}`,
+    ].join('\n'),
+    templateFileName: 'application-status.html',
     templateData,
   };
 };

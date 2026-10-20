@@ -40,3 +40,21 @@ Content-Type: application/json
   "email": "jane.doe@example.com",
   "otp": "enter-otp-from-email"
 }
+
+### Request a password reset code (response does not reveal whether the email is registered)
+POST {{baseUrl}}/forgot-password
+Content-Type: application/json
+
+{
+  "email": "jane.doe@example.com"
+}
+
+### Reset password with the emailed code
+POST {{baseUrl}}/forgot-password/reset
+Content-Type: application/json
+
+{
+  "email": "jane.doe@example.com",
+  "otp": "enter-reset-code-from-email",
+  "password": "new-password-here"
+}

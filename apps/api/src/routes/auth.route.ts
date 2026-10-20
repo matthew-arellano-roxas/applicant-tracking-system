@@ -1,13 +1,15 @@
 import { Router } from 'express';
 import passport from 'passport';
 
-import { login, refresh, logout, getMe, register, verifyOtp } from '@/controllers';
+import { login, refresh, logout, getMe, register, verifyOtp, completePasswordReset, requestPasswordReset } from '@/controllers';
 import { requireAuth } from '@/middlewares/auth.middleware';
 import {
   loginBodySchema,
   refreshCookieSchema,
   registerBodySchema,
   verifyOtpBodySchema,
+  requestPasswordResetBodySchema,
+  resetPasswordBodySchema,
 } from '@/schemas/auth.schema';
 import { validateRequest } from '@/utils/validateRequest';
 
@@ -49,5 +51,8 @@ authRoute.get('/me', requireAuth, getMe);
 authRoute.post('/register', validateRequest(registerBodySchema), register);
 
 authRoute.post('/register/verify', validateRequest(verifyOtpBodySchema), verifyOtp);
+
+authRoute.post('/forgot-password', validateRequest(requestPasswordResetBodySchema), requestPasswordReset);
+authRoute.post('/forgot-password/reset', validateRequest(resetPasswordBodySchema), completePasswordReset);
 
 export { authRoute };

@@ -6,7 +6,7 @@ import { signAccessToken, signRefreshToken, verifyRefreshToken } from '@/service
 import { accessCookieOptions, refreshCookieOptions } from '@/configs/cookies';
 import { ApiError } from '@/utils/ApiError';
 import { asyncHandler } from '@/utils/asyncHandler';
-import { startRegistration, verifyRegistration } from '@/services/auth.service';
+import { resetPassword, startPasswordReset, startRegistration, verifyRegistration } from '@/services/auth.service';
 
 export const login: RequestHandler = asyncHandler((req, res) => {
   const user = req.user;
@@ -127,4 +127,16 @@ export const verifyOtp: RequestHandler = asyncHandler(async (req, res) => {
   const user = await verifyRegistration(email, String(otp));
 
   return res.status(201).json({ message: 'Registration successful', user });
+});
+
+export const requestPasswordReset: RequestHandler = asyncHandler(async (req, res) => {
+  const { email } = req.body;
+  await startPasswordReset(email);
+  return res.status(202).json({ message: 'If an account exists for that email, a reset code has been sent.' });
+});
+
+export const completePasswordReset: RequestHandler = asyncHandler(async (req, res) => {
+  const { email, otp, password } = req.body;
+  await resetPassword(email, String(otp), password);
+  return res.status(200).json({ message: 'Password updated. You can now sign in.' });
 });

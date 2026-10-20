@@ -35,7 +35,10 @@ export function LoginPage() {
             </div>
 
             <div className="space-y-2">
-              <label htmlFor="password" className="text-sm font-medium">Password <span aria-hidden="true">*</span></label>
+              <div className="flex items-center justify-between gap-3">
+                <label htmlFor="password" className="text-sm font-medium">Password <span aria-hidden="true">*</span></label>
+                <Link to="/forgot-password" className="text-xs font-medium text-primary underline-offset-4 hover:underline">Forgot password?</Link>
+              </div>
               <div className="relative">
                 <input
                   id="password"
@@ -78,8 +81,8 @@ export function LoginPage() {
             </p>
           )}
           <div className="mt-5 text-center text-xs leading-5 text-muted-foreground">
-            <p>Applying for a position? Applicants can register here to apply and track their status.</p>
-            <Link to="/register" className="mt-1 inline-block font-semibold text-primary underline-offset-4 hover:underline">Create an applicant account</Link>
+            <p>New to BCP ATS? Create an account to apply for positions and track your applications. Employees can sign in with their school account.</p>
+            <Link to="/register" className="mt-1 inline-block font-semibold text-primary underline-offset-4 hover:underline">Create account</Link>
           </div>
         </div>
       </section>

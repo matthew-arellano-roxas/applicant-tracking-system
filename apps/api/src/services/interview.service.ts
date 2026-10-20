@@ -1,4 +1,5 @@
 import { env } from '@/configs/env';
+import { UserRole } from '@/constants/roles';
 import { Prisma, PrismaClient } from '@/generated/prisma/client';
 import { APPLICANT_STATUS } from '@/constants/status.constant';
 import {
@@ -100,10 +101,23 @@ export const createInterviewService = (db: PrismaClient) => {
     interviewerId: string,
   ): Promise<void> => {
     const employee = await tx.employee.findFirst({
-      where: { userId: interviewerId },
+      where: {
+        userId: interviewerId,
+        user: {
+          role: {
+            in: [
+              UserRole.Admin,
+              UserRole.Hr,
+              UserRole.Dean,
+              UserRole.DepartmentHead,
+              UserRole.Employee,
+            ],
+          },
+        },
+      },
       select: { id: true },
     });
-    if (!employee) throw ApiError.badRequest('Interviewer must be an employee of the school');
+    if (!employee) throw ApiError.badRequest('Interviewer must be a staff member of the school');
   };
 
   const assertScheduleAvailable = async (

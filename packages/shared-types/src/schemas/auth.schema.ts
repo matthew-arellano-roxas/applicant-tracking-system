@@ -22,6 +22,16 @@ export const verifyOtpBodySchema = z.object({
   otp: nonEmptyString,
 });
 
+export const requestPasswordResetBodySchema = z.object({
+  email: z.email().transform((email) => email.trim().toLowerCase()),
+});
+
+export const resetPasswordBodySchema = z.object({
+  email: z.email().transform((email) => email.trim().toLowerCase()),
+  otp: nonEmptyString,
+  password: z.string().min(8, 'Password must be at least 8 characters'),
+});
+
 export const refreshCookieSchema = z.object({ refresh_token: nonEmptyString });
 export const accessCookieSchema = z.object({ access_token: nonEmptyString });
 

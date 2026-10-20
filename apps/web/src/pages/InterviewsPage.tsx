@@ -11,6 +11,7 @@ type Applicant = { id: string; user?: { firstName: string; lastName: string; ema
 type Employee = { user: { id: string; firstName: string; lastName: string; role: string } };
 type Criterion = { id: string; name: string; description: string };
 type InterviewEvaluation = { id: string; evaluator?: { firstName: string; lastName: string; email: string }; ratings: Record<string, number>; recommendation: string; strengths?: string | null; concerns?: string | null; comments?: string | null; createdAt: string };
+type InterviewAction = { interview: Interview; action: 'cancel' | 'complete' | 'reschedule'; newDate?: Date };
 
 const dateLabel = (value: string) => new Intl.DateTimeFormat('en-PH', { dateStyle: 'medium', timeStyle: 'short', timeZone: 'Asia/Manila' }).format(new Date(value));
 
@@ -25,6 +26,10 @@ export function InterviewsPage() {
   const [scheduling, setScheduling] = useState(Boolean(params.get('applicantId')));
   const [evaluating, setEvaluating] = useState<Interview | null>(null);
   const [reviewingEvaluations, setReviewingEvaluations] = useState<Interview | null>(null);
+  const [rescheduleDraft, setRescheduleDraft] = useState<{ interview: Interview; date: string } | null>(null);
+  const [rescheduleError, setRescheduleError] = useState('');
+  const [pendingAction, setPendingAction] = useState<InterviewAction | null>(null);
+  const [savingAction, setSavingAction] = useState(false);
   const [error, setError] = useState('');
 
   const load = useCallback(async () => {
@@ -41,18 +46,41 @@ export function InterviewsPage() {
     void api.get<{ applications: Applicant[] }>('/applications', { params: { page: 1, limit: 100 } }).then(({ data }) => setApplicants(data.applications)).catch(() => setApplicants([]));
   }, [isManager]);
 
-  async function update(interview: Interview, action: 'cancel' | 'complete') {
-    try { await api.patch(`/interviews/${interview.id}/${action}`); await load(); }
-    catch (requestError) { setError(getApiErrorMessage(requestError, 'Could not update this interview.')); }
-  }
-  async function reschedule(interview: Interview) {
+  function openReschedule(interview: Interview) {
     const interviewDate = new Date(interview.date);
     const localDate = new Date(interviewDate.getTime() - interviewDate.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
-    const value = window.prompt('New date and time (local Manila time)', localDate); if (!value) return;
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime()) || date <= new Date()) { setError('Choose a valid future date and time.'); return; }
-    try { await api.patch(`/interviews/${interview.id}`, { date: date.toISOString() }); await load(); }
-    catch (requestError) { setError(getApiErrorMessage(requestError, 'Could not reschedule this interview.')); }
+    setError('');
+    setRescheduleError('');
+    setRescheduleDraft({ interview, date: localDate });
+  }
+  function requestReschedule(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!rescheduleDraft) return;
+    const newDate = new Date(rescheduleDraft.date);
+    if (Number.isNaN(newDate.getTime()) || newDate <= new Date()) {
+      setRescheduleError('Choose a valid future date and time.');
+      return;
+    }
+    setRescheduleError('');
+    setRescheduleDraft(null);
+    setPendingAction({ interview: rescheduleDraft.interview, action: 'reschedule', newDate });
+  }
+  async function confirmInterviewAction() {
+    if (!pendingAction) return;
+    setSavingAction(true);
+    setError('');
+    try {
+      if (pendingAction.action === 'reschedule') {
+        await api.patch(`/interviews/${pendingAction.interview.id}`, { date: pendingAction.newDate?.toISOString() });
+      } else {
+        await api.patch(`/interviews/${pendingAction.interview.id}/${pendingAction.action}`);
+      }
+      setPendingAction(null);
+      await load();
+    } catch (requestError) {
+      setError(getApiErrorMessage(requestError, `Could not ${pendingAction.action} this interview.`));
+      setPendingAction(null);
+    } finally { setSavingAction(false); }
   }
   function closeSchedule() { setScheduling(false); setParams({}, { replace: true }); }
 
@@ -62,9 +90,11 @@ export function InterviewsPage() {
     <section className="flex flex-col gap-3 rounded-xl border border-border bg-card p-4 sm:flex-row"><label className="relative flex-1"><Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" /><input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search applicant or position" className="h-10 w-full rounded-md border border-input bg-background pl-9 pr-3 text-sm" /></label><select value={status} onChange={(event) => setStatus(event.target.value)} className="h-10 rounded-md border border-input bg-background px-3 text-sm sm:w-48"><option value="">All statuses</option>{['SCHEDULED', 'COMPLETED', 'CANCELLED', 'NO_SHOW'].map((value) => <option key={value} value={value}>{value.replaceAll('_', ' ')}</option>)}</select></section>
     {interviews.length === 0 ? <p className="rounded-xl border border-dashed border-border bg-card p-10 text-center text-sm text-muted-foreground">No interviews found.</p> : <section className="space-y-3">{interviews.map((interview) => {
       const name = interview.applicant?.user ? `${interview.applicant.user.firstName} ${interview.applicant.user.lastName}` : 'Applicant';
-      return <article key={interview.id} className="rounded-xl border border-border bg-card p-5 shadow-sm"><div className="flex flex-wrap items-start justify-between gap-4"><div><h3 className="font-semibold">{name} <span className="font-normal text-muted-foreground"> |  {interview.applicant?.jobPost?.title ?? 'Position'}</span></h3><p className="mt-1 text-sm text-muted-foreground">{interview.stage.replaceAll('_', ' ')}  |  {interview.type}  |  {dateLabel(interview.date)}  |  {interview.durationMinutes} min</p><p className="mt-1 text-xs text-muted-foreground">{interview.interviewer ? `Interviewer: ${interview.interviewer.firstName} ${interview.interviewer.lastName}` : 'Interviewer not assigned'}{interview.location ? `  |  ${interview.location}` : ''}</p>{interview.meetingUrl && <a className="mt-2 inline-block text-xs text-primary hover:underline" href={interview.meetingUrl} target="_blank" rel="noreferrer">Open meeting</a>}{interview.instructions && <p className="mt-2 text-sm">{interview.instructions}</p>}</div><div className="flex flex-wrap items-center gap-2"><span className="rounded-full bg-muted px-2.5 py-1 text-xs">{interview.status.replaceAll('_', ' ')}</span>{isManager && interview.status === 'SCHEDULED' && <><button onClick={() => void reschedule(interview)} className="rounded-md border border-input px-3 py-2 text-xs">Reschedule</button><button onClick={() => void update(interview, 'cancel')} className="rounded-md border border-input px-3 py-2 text-xs">Cancel</button></>}{(role === UserRole.Admin || role === UserRole.Hr || role === UserRole.Employee || role === UserRole.Dean || role === UserRole.DepartmentHead) && interview.status === 'SCHEDULED' && <button onClick={() => void update(interview, 'complete')} className="rounded-md border border-input px-3 py-2 text-xs">Mark complete</button>}{interview.status === 'COMPLETED' && isManager && <button onClick={() => setReviewingEvaluations(interview)} className="rounded-md border border-input px-3 py-2 text-xs hover:bg-accent">View evaluations</button>}{interview.status === 'COMPLETED' && !isManager && role !== UserRole.Applicant && <button onClick={() => setEvaluating(interview)} className="rounded-md border border-input px-3 py-2 text-xs">Submit evaluation</button>}</div></div></article>;
+      return <article key={interview.id} className="rounded-xl border border-border bg-card p-5 shadow-sm"><div className="flex flex-wrap items-start justify-between gap-4"><div><h3 className="font-semibold">{name} <span className="font-normal text-muted-foreground"> |  {interview.applicant?.jobPost?.title ?? 'Position'}</span></h3><p className="mt-1 text-sm text-muted-foreground">{interview.stage.replaceAll('_', ' ')}  |  {interview.type}  |  {dateLabel(interview.date)}  |  {interview.durationMinutes} min</p><p className="mt-1 text-xs text-muted-foreground">{interview.interviewer ? `Interviewer: ${interview.interviewer.firstName} ${interview.interviewer.lastName}` : 'Interviewer not assigned'}{interview.location ? `  |  ${interview.location}` : ''}</p>{interview.meetingUrl && <a className="mt-2 inline-block text-xs text-primary hover:underline" href={interview.meetingUrl} target="_blank" rel="noreferrer">Open meeting</a>}{interview.instructions && <p className="mt-2 text-sm">{interview.instructions}</p>}</div><div className="flex flex-wrap items-center gap-2"><span className="rounded-full bg-muted px-2.5 py-1 text-xs">{interview.status.replaceAll('_', ' ')}</span>{isManager && interview.status === 'SCHEDULED' && <><button onClick={() => openReschedule(interview)} className="rounded-md border border-input px-3 py-2 text-xs">Reschedule</button><button onClick={() => setPendingAction({ interview, action: 'cancel' })} className="rounded-md border border-input px-3 py-2 text-xs">Cancel</button></>}{(role === UserRole.Admin || role === UserRole.Hr || role === UserRole.Employee || role === UserRole.Dean || role === UserRole.DepartmentHead) && interview.status === 'SCHEDULED' && <button onClick={() => setPendingAction({ interview, action: 'complete' })} className="rounded-md border border-input px-3 py-2 text-xs">Mark complete</button>}{interview.status === 'COMPLETED' && isManager && <button onClick={() => setReviewingEvaluations(interview)} className="rounded-md border border-input px-3 py-2 text-xs hover:bg-accent">View evaluations</button>}{interview.status === 'COMPLETED' && !isManager && role !== UserRole.Applicant && <button onClick={() => setEvaluating(interview)} className="rounded-md border border-input px-3 py-2 text-xs">Submit evaluation</button>}</div></div></article>;
     })}</section>}
     {scheduling && <ScheduleDialog applicants={applicants} initialApplicantId={params.get('applicantId') ?? ''} onClose={closeSchedule} onSaved={() => { closeSchedule(); void load(); }} />}
+    {rescheduleDraft && <Modal title="Reschedule interview" onClose={() => setRescheduleDraft(null)}><form onSubmit={requestReschedule} className="space-y-4"><p className="text-sm text-muted-foreground">Choose a new date and time for {rescheduleDraft.interview.applicant?.user ? `${rescheduleDraft.interview.applicant.user.firstName} ${rescheduleDraft.interview.applicant.user.lastName}` : 'this applicant'}’s {rescheduleDraft.interview.stage.replaceAll('_', ' ').toLowerCase()} interview.</p><label className="block text-sm font-medium">New date and time<input autoFocus type="datetime-local" required min={new Date(Date.now() + 60_000).toISOString().slice(0, 16)} value={rescheduleDraft.date} onChange={(event) => { setRescheduleError(''); setRescheduleDraft({ ...rescheduleDraft, date: event.target.value }); }} className="mt-1 h-10 w-full rounded-md border border-input bg-background px-3 text-sm" /></label>{rescheduleError && <p role="alert" className="text-sm text-destructive">{rescheduleError}</p>}<div className="flex justify-end gap-2"><button type="button" onClick={() => setRescheduleDraft(null)} className="rounded-md border border-input px-3 py-2 text-sm">Cancel</button><button type="submit" className="rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground">Continue</button></div></form></Modal>}
+    {pendingAction && <div className="fixed inset-0 z-[60] grid place-items-center bg-foreground/35 p-4" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget && !savingAction) setPendingAction(null); }}><section role="alertdialog" aria-modal="true" aria-labelledby="interview-action-title" aria-describedby="interview-action-description" className="w-full max-w-md rounded-xl border border-border bg-card p-5 shadow-xl"><h2 id="interview-action-title" className="text-base font-semibold">{pendingAction.action === 'cancel' ? 'Cancel this interview?' : pendingAction.action === 'complete' ? 'Mark interview complete?' : 'Confirm new interview time?'}</h2><p id="interview-action-description" className="mt-2 text-sm text-muted-foreground">{pendingAction.action === 'cancel' ? `The scheduled interview for ${pendingAction.interview.applicant?.user?.firstName ?? 'this applicant'} will be cancelled, and participants will be notified.` : pendingAction.action === 'complete' ? `Mark the ${pendingAction.interview.stage.replaceAll('_', ' ').toLowerCase()} interview for ${pendingAction.interview.applicant?.user?.firstName ?? 'this applicant'} as completed?` : `Move the ${pendingAction.interview.stage.replaceAll('_', ' ').toLowerCase()} interview for ${pendingAction.interview.applicant?.user?.firstName ?? 'this applicant'} to ${dateLabel(pendingAction.newDate!.toISOString())}? The applicant and interviewer will be notified.`}</p><div className="mt-5 flex justify-end gap-2"><button disabled={savingAction} onClick={() => setPendingAction(null)} className="rounded-md border border-input px-3 py-2 text-sm hover:bg-accent disabled:opacity-50">Go back</button><button disabled={savingAction} onClick={() => void confirmInterviewAction()} className={`rounded-md px-3 py-2 text-sm font-medium text-white disabled:opacity-50 ${pendingAction.action === 'cancel' ? 'bg-destructive hover:bg-destructive/90' : 'bg-primary text-primary-foreground'}`}>{savingAction ? 'Saving…' : pendingAction.action === 'cancel' ? 'Confirm cancellation' : pendingAction.action === 'complete' ? 'Confirm completion' : 'Confirm reschedule'}</button></div></section></div>}
     {reviewingEvaluations && <EvaluationReviewDialog interview={reviewingEvaluations} onClose={() => setReviewingEvaluations(null)} onAddEvaluation={() => { const interview = reviewingEvaluations; setReviewingEvaluations(null); setEvaluating(interview); }} />}
     {evaluating && <EvaluationDialog interview={evaluating} onClose={() => setEvaluating(null)} />}
   </div>;
@@ -74,7 +104,12 @@ function ScheduleDialog({ applicants, initialApplicantId, onClose, onSaved }: { 
   const [employees, setEmployees] = useState<Employee[]>([]); const [error, setError] = useState(''); const [saving, setSaving] = useState(false);
   const [selectedApplicantId, setSelectedApplicantId] = useState(initialApplicantId);
   useEffect(() => { if (!applicants.some(({ id }) => id === selectedApplicantId)) setSelectedApplicantId(applicants[0]?.id ?? ''); }, [applicants, selectedApplicantId]);
-  useEffect(() => { void api.get<{ employees: Employee[] }>('/employees', { params: { page: 1, limit: 100 } }).then(({ data }) => setEmployees(data.employees)).catch((requestError: unknown) => setError(getApiErrorMessage(requestError, 'Could not load interviewers.'))); }, []);
+  useEffect(() => {
+    const eligibleRoles = new Set<string>([UserRole.Admin, UserRole.Hr, UserRole.Dean, UserRole.DepartmentHead, UserRole.Employee]);
+    void api.get<{ employees: Employee[] }>('/employees', { params: { page: 1, limit: 100 } })
+      .then(({ data }) => setEmployees(data.employees.filter(({ user }) => eligibleRoles.has(user.role))))
+      .catch((requestError: unknown) => setError(getApiErrorMessage(requestError, 'Could not load interviewers.')));
+  }, []);
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); setSaving(true); setError(''); const form = new FormData(event.currentTarget); const type = String(form.get('type'));
     try {

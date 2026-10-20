@@ -1,6 +1,8 @@
 import { Prisma, PrismaClient } from '@/generated/prisma/client';
 import { llmQueue } from '@/queues/llm.queue';
-import { LLM_JOB } from '@/constants';
+import { APPLICANT_STATUS, LLM_JOB } from '@/constants';
+import { env } from '@/configs/env';
+import { enqueueApplicationStatusUpdate, enqueueShortlisted } from '@/services/email-dispatch.service';
 import { ApiError } from '@/utils/ApiError';
 import { getPaginationMetadata } from '@/utils/pagination';
 
@@ -226,13 +228,51 @@ export const createApplicantService = (prisma: PrismaClient): ApplicationService
   }
 
   async function updateApplicationStatus(id: string, status: string): Promise<Applicant> {
-    const applicant = await prisma.applicant.findUnique({ where: { id } });
+    const applicant = await prisma.applicant.findUnique({
+      where: { id },
+      include: {
+        user: { select: { firstName: true, lastName: true, email: true } },
+        jobPost: { select: { title: true } },
+      },
+    });
     if (!applicant) throw ApiError.notFound('Application not found');
 
-    return prisma.applicant.update({
+    const updated = await prisma.applicant.update({
       where: { id },
       data: { status },
     });
+
+    const emailStatuses = [
+      APPLICANT_STATUS.SHORTLISTED,
+      APPLICANT_STATUS.INTERVIEW,
+      APPLICANT_STATUS.REJECTED,
+      APPLICANT_STATUS.HIRED,
+    ];
+    if (applicant.status !== status && emailStatuses.includes(status as (typeof emailStatuses)[number])) {
+      const frontendUrl = env.FRONTEND_URL?.replace(/\/$/, '');
+      const emailInput = {
+        to: applicant.user.email,
+        name: `${applicant.user.firstName} ${applicant.user.lastName}`,
+        jobTitle: applicant.jobPost.title,
+        applicationReference: applicant.id,
+        ctaUrl: frontendUrl ? `${frontendUrl}/a/applications` : '',
+      };
+      try {
+        if (status === APPLICANT_STATUS.SHORTLISTED) {
+          await enqueueShortlisted({
+            ...emailInput,
+            nextStep: 'The recruitment team will contact you with details about the next step in the process.',
+          });
+        } else {
+          await enqueueApplicationStatusUpdate({ ...emailInput, applicationStatus: status });
+        }
+      } catch (error) {
+        // Keep the status change successful even if the notification queue is unavailable.
+        console.error(`Could not queue application status email for ${id}:`, error);
+      }
+    }
+
+    return updated;
   }
 
   async function listApplicationsByJobPost(jobPostId: string): Promise<ApplicantWithDetails[]> {

@@ -20,11 +20,11 @@ export function RegisterPage() {
           </div>
           <div className="mb-4 text-center">
             <h1 className="text-[27px] font-semibold leading-tight tracking-tight">
-              {step === 'details' ? 'Create an applicant account' : 'Verify your email'}
+              {step === 'details' ? 'Create an account' : 'Verify your email'}
             </h1>
             <p className="mt-1 text-xs leading-5 text-muted-foreground">
               {step === 'details'
-                ? 'Applying for a position at Bestlink? Register here to submit your application and track its status.'
+                ? 'Register to apply for positions at Bestlink and track your applications.'
                 : `Enter the verification code sent to ${email}.`}
             </p>
           </div>

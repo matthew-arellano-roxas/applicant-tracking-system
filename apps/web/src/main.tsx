@@ -8,6 +8,7 @@ import { AuthSessionLoader } from './components/AuthSessionLoader.tsx';
 import { PageAccessGuard, WorkspaceFallback } from './components/PageAccessGuard.tsx';
 import { LoginPage } from './pages/LoginPage.tsx';
 import { RegisterPage } from './pages/RegisterPage.tsx';
+import { ForgotPasswordPage } from './pages/ForgotPasswordPage.tsx';
 import { ApplicantsPage } from './pages/ApplicantsPage.tsx';
 import { JobsPage } from './pages/JobsPage.tsx';
 import { TeamPage } from './pages/TeamPage.tsx';
@@ -23,7 +24,7 @@ import { AdminUsersPage, ApplicantApplicationsPage, ApplicantCvPage, ApplicantIn
 
 function HomeRedirect() { const role = useAuthStore(s => s.user?.role); return role ? <Navigate to={getDefaultWorkspacePath(role)} replace /> : null; }
 const router = createBrowserRouter([
-  { path: '/login', element: <LoginPage /> }, { path: '/register', element: <RegisterPage /> },
+  { path: '/login', element: <LoginPage /> }, { path: '/register', element: <RegisterPage /> }, { path: '/forgot-password', element: <ForgotPasswordPage /> },
   { element: <AuthSessionLoader><AuthGuard><AppLayout /></AuthGuard></AuthSessionLoader>, children: [
     { index: true, element: <HomeRedirect /> },
     { path: 'a/jobs', element: <PageAccessGuard pageKey="a_jobs"><JobsPage /></PageAccessGuard> },

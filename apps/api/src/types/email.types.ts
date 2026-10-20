@@ -15,6 +15,8 @@ export interface OtpEmailTemplateData {
   expiryMinutes: number;
   year: number;
   purpose: 'REGISTRATION' | 'FORGOT_PASSWORD';
+  heading: string;
+  message: string;
 }
 
 // Optional specialized type for OTP emails
@@ -80,6 +82,26 @@ export interface ShortlistedInput {
   jobTitle: string;
   applicationReference: string;
   nextStep: string;
+  ctaUrl: string;
+}
+
+export interface ApplicationStatusEmailTemplateData {
+  name: string;
+  jobTitle: string;
+  applicationStatus: string;
+  applicationReference: string;
+  companyName: string;
+  ctaUrl: string;
+  senderName: string;
+  year: number;
+}
+
+export interface ApplicationStatusEmailInput {
+  to: string;
+  name: string;
+  jobTitle: string;
+  applicationStatus: string;
+  applicationReference: string;
   ctaUrl: string;
 }
 
