@@ -1,0 +1,4 @@
+@baseUrl = http://localhost:3000
+
+### List campuses for hiring request forms (authenticated HR, Admin, Dean, or Department Head)
+GET {{baseUrl}}/campuses

@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Application status update</title>
+  </head>
+  <body style="margin:0;background:#f1f5f9;color:#172033;font-family:Arial,Helvetica,sans-serif">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="padding:32px 12px;background:#f1f5f9">
+      <tr><td align="center">
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:560px;background:#fff;border:1px solid #dbe3ef;border-radius:12px">
+          <tr><td style="padding:28px 32px;background:#1e3a8a;color:#fff;border-radius:12px 12px 0 0">
+            <p style="margin:0;font-size:13px;color:#dbeafe">{{companyName}}</p>
+            <h1 style="margin:10px 0 0;font-size:24px">Application status update</h1>
+          </td></tr>
+          <tr><td style="padding:28px 32px">
+            <p style="margin:0 0 16px">Dear {{name}},</p>
+            <p style="margin:0 0 20px;line-height:1.6">Your application for <strong>{{jobTitle}}</strong> is now <strong>{{applicationStatus}}</strong>.</p>
+            <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px">
+              <tr><td style="padding:16px"><p style="margin:0 0 6px;font-size:12px;color:#64748b">APPLICATION REFERENCE</p><p style="margin:0;font-weight:700">{{applicationReference}}</p></td></tr>
+            </table>
+            <p style="line-height:1.6">Sign in to the recruitment portal to see the latest details and any next steps.</p>
+            {{#if ctaUrl}}<p style="margin:24px 0"><a href="{{ctaUrl}}" style="display:inline-block;padding:12px 20px;border-radius:7px;background:#315bea;color:#fff;text-decoration:none;font-weight:700">View my applications</a></p>{{/if}}
+            <p style="margin:28px 0 0;line-height:1.6">Best regards,<br /><strong>{{senderName}}</strong><br />{{companyName}}</p>
+          </td></tr>
+          <tr><td style="padding:16px 32px;border-top:1px solid #e2e8f0;color:#64748b;font-size:12px">Automated notification from BCP ATS · © {{year}} BCP ATS</td></tr>
+        </table>
+      </td></tr>
+    </table>
+  </body>
+</html>

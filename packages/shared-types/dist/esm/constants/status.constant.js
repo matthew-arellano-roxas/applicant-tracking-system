@@ -1,0 +1,12 @@
+export const APPLICANT_STATUS = {
+    APPLIED: 'APPLIED',
+    SCREENED: 'SCREENED',
+    SHORTLISTED: 'SHORTLISTED',
+    INTERVIEW: 'INTERVIEW',
+    REJECTED: 'REJECTED',
+    HIRED: 'HIRED',
+};
+export const JOB_POST_STATUS = {
+    OPEN: 'OPEN',
+    CLOSED: 'CLOSED',
+};
