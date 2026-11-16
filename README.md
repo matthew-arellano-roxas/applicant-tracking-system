@@ -62,6 +62,9 @@ When deploying behind a reverse proxy, set `TRUST_PROXY_HOPS` to the exact numbe
 so Express can identify client IPs correctly (for example, `1` for one Nginx proxy). Do not expose
 the API directly to untrusted clients when trusting forwarded IP headers.
 
+Credentialed CORS requests are allowed only from the origin configured by `FRONTEND_URL`.
+Set it to the frontend's origin (for example, `https://ats.example.com`).
+
 Use pnpm for dependency changes too. For example, `pnpm --filter @ats/web add axios` adds a
 web-only dependency. The old `package-lock.json` files inside the moved apps are not used by the
 workspace; `pnpm install` at the root creates and updates the single `pnpm-lock.yaml`.

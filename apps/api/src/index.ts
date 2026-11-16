@@ -19,12 +19,16 @@ import cookieParser from 'cookie-parser';
 import { requestLogger } from '@/middlewares/request-logger.middleware';
 import { invalidateGetResponseCache } from '@/middlewares/response-cache.middleware';
 import { createRateLimit } from '@/middlewares/rate-limit.middleware';
+import cors from 'cors';
 const app = express();
 const apiRateLimit = createRateLimit({
   keyPrefix: 'api:global',
   limit: 1_000,
   windowMs: 15 * 60_000,
 });
+const frontendOrigin = env.FRONTEND_URL
+  ? new URL(env.FRONTEND_URL).origin
+  : undefined;
 
 const trustProxyHopsValue = process.env.TRUST_PROXY_HOPS;
 if (trustProxyHopsValue !== undefined) {
@@ -36,6 +40,15 @@ if (trustProxyHopsValue !== undefined) {
 }
 
 app.use(requestLogger);
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, false);
+      return callback(null, origin === frontendOrigin);
+    },
+    credentials: true,
+  }),
+);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
