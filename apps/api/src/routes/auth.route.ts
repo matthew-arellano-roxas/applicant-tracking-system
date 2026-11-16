@@ -3,6 +3,7 @@ import passport from 'passport';
 
 import { login, refresh, logout, getMe, updateMe, changeMyPassword, register, verifyOtp, completePasswordReset, requestPasswordReset } from '@/controllers';
 import { requireAuth } from '@/middlewares/auth.middleware';
+import { createRateLimit } from '@/middlewares/rate-limit.middleware';
 import {
   changeCurrentUserPasswordBodySchema,
   updateCurrentUserBodySchema,
@@ -18,9 +19,16 @@ import {
 import { validateRequest } from '@/utils/validateRequest';
 
 const authRoute = Router();
+const loginRateLimit = createRateLimit({ keyPrefix: 'auth:login', limit: 10, windowMs: 15 * 60_000 });
+const registrationRateLimit = createRateLimit({ keyPrefix: 'auth:register', limit: 5, windowMs: 15 * 60_000 });
+const registrationVerifyRateLimit = createRateLimit({ keyPrefix: 'auth:register-verify', limit: 10, windowMs: 15 * 60_000 });
+const passwordResetRequestRateLimit = createRateLimit({ keyPrefix: 'auth:password-reset-request', limit: 5, windowMs: 15 * 60_000 });
+const passwordResetCompleteRateLimit = createRateLimit({ keyPrefix: 'auth:password-reset-complete', limit: 10, windowMs: 15 * 60_000 });
+const passwordChangeRateLimit = createRateLimit({ keyPrefix: 'auth:password-change', limit: 5, windowMs: 15 * 60_000 });
 
 authRoute.post(
   '/login',
+  loginRateLimit,
   validateRequest(loginBodySchema),
   (req, res, next) =>
     passport.authenticate(
@@ -55,15 +63,16 @@ authRoute.patch('/me', requireAuth, validateRequest(updateCurrentUserBodySchema)
 authRoute.patch(
   '/me/password',
   requireAuth,
+  passwordChangeRateLimit,
   validateRequest(changeCurrentUserPasswordBodySchema),
   changeMyPassword,
 );
 
-authRoute.post('/register', validateRequest(registerBodySchema), register);
+authRoute.post('/register', registrationRateLimit, validateRequest(registerBodySchema), register);
 
-authRoute.post('/register/verify', validateRequest(verifyOtpBodySchema), verifyOtp);
+authRoute.post('/register/verify', registrationVerifyRateLimit, validateRequest(verifyOtpBodySchema), verifyOtp);
 
-authRoute.post('/forgot-password', validateRequest(requestPasswordResetBodySchema), requestPasswordReset);
-authRoute.post('/forgot-password/reset', validateRequest(resetPasswordBodySchema), completePasswordReset);
+authRoute.post('/forgot-password', passwordResetRequestRateLimit, validateRequest(requestPasswordResetBodySchema), requestPasswordReset);
+authRoute.post('/forgot-password/reset', passwordResetCompleteRateLimit, validateRequest(resetPasswordBodySchema), completePasswordReset);
 
 export { authRoute };

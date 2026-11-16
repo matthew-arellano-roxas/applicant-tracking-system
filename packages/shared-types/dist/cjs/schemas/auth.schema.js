@@ -36,5 +36,7 @@ exports.currentUserSchema = zod_1.z.object({
     lastName: nonEmptyString,
     email: zod_1.z.email(),
     role: zod_1.z.enum(roles_js_1.UserRole),
+    phoneNumber: zod_1.z.string().nullable(),
+    education: zod_1.z.string(),
 });
 exports.currentUserResponseSchema = zod_1.z.object({ user: exports.currentUserSchema });

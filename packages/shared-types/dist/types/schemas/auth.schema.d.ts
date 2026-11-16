@@ -42,6 +42,8 @@ export declare const currentUserSchema: z.ZodObject<{
         readonly Applicant: "APPLICANT";
         readonly Employee: "EMPLOYEE";
     }>;
+    phoneNumber: z.ZodNullable<z.ZodString>;
+    education: z.ZodString;
 }, z.core.$strip>;
 export declare const currentUserResponseSchema: z.ZodObject<{
     user: z.ZodObject<{
@@ -57,6 +59,8 @@ export declare const currentUserResponseSchema: z.ZodObject<{
             readonly Applicant: "APPLICANT";
             readonly Employee: "EMPLOYEE";
         }>;
+        phoneNumber: z.ZodNullable<z.ZodString>;
+        education: z.ZodString;
     }, z.core.$strip>;
 }, z.core.$strip>;
 export type CurrentUser = z.infer<typeof currentUserSchema>;

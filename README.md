@@ -51,6 +51,17 @@ Open the web app at `http://localhost:5173`; the API is available at `http://loc
 The API container pushes the Prisma schema to the local PostgreSQL database on startup. PostgreSQL
 and Redis data persist in Docker volumes. Stop the services with `docker compose down`.
 
+### API rate limits
+
+All API routes have a Redis-backed baseline limit of 1,000 requests per IP per 15 minutes.
+Authentication endpoints also use stricter per-IP limits: login, registration verification, and
+password-reset completion allow 10 requests per 15 minutes; registration, password-reset requests,
+and password changes allow 5. Existing per-code OTP attempt limits still apply.
+
+When deploying behind a reverse proxy, set `TRUST_PROXY_HOPS` to the exact number of trusted proxies
+so Express can identify client IPs correctly (for example, `1` for one Nginx proxy). Do not expose
+the API directly to untrusted clients when trusting forwarded IP headers.
+
 Use pnpm for dependency changes too. For example, `pnpm --filter @ats/web add axios` adds a
 web-only dependency. The old `package-lock.json` files inside the moved apps are not used by the
 workspace; `pnpm install` at the root creates and updates the single `pnpm-lock.yaml`.

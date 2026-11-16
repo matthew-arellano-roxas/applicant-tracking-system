@@ -18,7 +18,22 @@ import { passwordStrategy } from '@/strategies';
 import cookieParser from 'cookie-parser';
 import { requestLogger } from '@/middlewares/request-logger.middleware';
 import { invalidateGetResponseCache } from '@/middlewares/response-cache.middleware';
+import { createRateLimit } from '@/middlewares/rate-limit.middleware';
 const app = express();
+const apiRateLimit = createRateLimit({
+  keyPrefix: 'api:global',
+  limit: 1_000,
+  windowMs: 15 * 60_000,
+});
+
+const trustProxyHopsValue = process.env.TRUST_PROXY_HOPS;
+if (trustProxyHopsValue !== undefined) {
+  const trustProxyHops = Number(trustProxyHopsValue);
+  if (!Number.isSafeInteger(trustProxyHops) || trustProxyHops < 0) {
+    throw new Error('TRUST_PROXY_HOPS must be a non-negative integer');
+  }
+  app.set('trust proxy', trustProxyHops);
+}
 
 app.use(requestLogger);
 app.use(express.json());
@@ -28,6 +43,7 @@ app.use(cookieParser());
 passport.use('local', passwordStrategy);
 app.use(passport.initialize());
 app.use(invalidateGetResponseCache);
+app.use(apiRateLimit);
 
 app.use(authRoute);
 app.use('/applications', applicantRoute);

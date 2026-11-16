@@ -25,3 +25,14 @@ export declare const userListQuerySchema: z.ZodObject<{
         readonly Employee: "EMPLOYEE";
     }>>;
 }, z.core.$strip>;
+export declare const updateCurrentUserBodySchema: z.ZodObject<{
+    firstName: z.ZodOptional<z.ZodString>;
+    lastName: z.ZodOptional<z.ZodString>;
+    email: z.ZodOptional<z.ZodPipe<z.ZodEmail, z.ZodTransform<string, string>>>;
+    phoneNumber: z.ZodPipe<z.ZodOptional<z.ZodNullable<z.ZodString>>, z.ZodTransform<string | null | undefined, string | null | undefined>>;
+    education: z.ZodOptional<z.ZodString>;
+}, z.core.$strip>;
+export declare const changeCurrentUserPasswordBodySchema: z.ZodObject<{
+    currentPassword: z.ZodString;
+    newPassword: z.ZodString;
+}, z.core.$strip>;
