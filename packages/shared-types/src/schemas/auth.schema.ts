@@ -41,6 +41,8 @@ export const currentUserSchema = z.object({
   lastName: nonEmptyString,
   email: z.email(),
   role: z.enum(UserRole),
+  phoneNumber: z.string().nullable(),
+  education: z.string(),
 });
 
 export const currentUserResponseSchema = z.object({ user: currentUserSchema });

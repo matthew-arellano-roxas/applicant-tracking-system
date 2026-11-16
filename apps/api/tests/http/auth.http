@@ -11,8 +11,29 @@ Content-Type: application/json
 }
 
 ### Current user
-# Expected response: { "user": { "id", "firstName", "lastName", "email", "role" } }
+# Expected response: { "user": { "id", "firstName", "lastName", "email", "role", "phoneNumber", "education" } }
 GET {{baseUrl}}/me
+
+### Update your profile
+PATCH {{baseUrl}}/me
+Content-Type: application/json
+
+{
+  "firstName": "Jane",
+  "lastName": "Doe",
+  "email": "jane.doe@example.com",
+  "phoneNumber": "555-0100",
+  "education": "BSCS"
+}
+
+### Change your password
+PATCH {{baseUrl}}/me/password
+Content-Type: application/json
+
+{
+  "currentPassword": "your-current-password",
+  "newPassword": "your-new-password"
+}
 
 ### Refresh session
 POST {{baseUrl}}/refresh

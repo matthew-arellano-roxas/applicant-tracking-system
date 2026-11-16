@@ -1,12 +1,23 @@
 import type { RequestHandler } from 'express';
+import type { z } from 'zod';
 
 import { prisma } from '@/configs';
 import { currentUserResponseSchema } from '@ats/shared-types/schemas/auth.schema';
+import {
+  changeCurrentUserPasswordBodySchema,
+  updateCurrentUserBodySchema,
+} from '@/schemas/user.schema';
 import { signAccessToken, signRefreshToken, verifyRefreshToken } from '@/services/token.service';
 import { accessCookieOptions, refreshCookieOptions } from '@/configs/cookies';
 import { ApiError } from '@/utils/ApiError';
 import { asyncHandler } from '@/utils/asyncHandler';
-import { resetPassword, startPasswordReset, startRegistration, verifyRegistration } from '@/services/auth.service';
+import {
+  changePassword,
+  resetPassword,
+  startPasswordReset,
+  startRegistration,
+  verifyRegistration,
+} from '@/services/auth.service';
 
 export const login: RequestHandler = asyncHandler((req, res) => {
   const user = req.user;
@@ -95,6 +106,8 @@ export const getMe: RequestHandler = asyncHandler(async (req, res) => {
       lastName: true,
       email: true,
       role: true,
+      phoneNumber: true,
+      education: true,
     },
   });
 
@@ -103,6 +116,80 @@ export const getMe: RequestHandler = asyncHandler(async (req, res) => {
   }
 
   return res.status(200).json(currentUserResponseSchema.parse({ user }));
+});
+
+export const updateMe: RequestHandler = asyncHandler(async (req, res) => {
+  if (!req.user) throw ApiError.unauthorized('Authentication required');
+
+  const updates = req.body as z.output<typeof updateCurrentUserBodySchema>;
+  const existingUser = await prisma.user.findUnique({
+    where: { id: req.user.id },
+    select: { id: true, email: true, authIdentities: { select: { provider: true } } },
+  });
+  if (!existingUser) throw ApiError.unauthorized('User not found');
+
+  try {
+    const user = await prisma.$transaction(async (transaction) => {
+      if (updates.email && updates.email !== existingUser.email) {
+        const emailOwner = await transaction.user.findUnique({
+          where: { email: updates.email },
+          select: { id: true },
+        });
+        if (emailOwner && emailOwner.id !== existingUser.id) {
+          throw ApiError.conflict('Email is already registered');
+        }
+      }
+
+      const updatedUser = await transaction.user.update({
+        where: { id: existingUser.id },
+        data: { ...updates, updatedAt: new Date() },
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+          role: true,
+          phoneNumber: true,
+          education: true,
+        },
+      });
+
+      if (
+        updates.email &&
+        updates.email !== existingUser.email &&
+        existingUser.authIdentities?.provider === 'PASSWORD'
+      ) {
+        await transaction.authIdentity.update({
+          where: { userId: existingUser.id },
+          data: { providerUserId: updates.email },
+        });
+      }
+
+      return updatedUser;
+    });
+
+    return res.status(200).json(currentUserResponseSchema.parse({ user }));
+  } catch (error) {
+    if (
+      typeof error === 'object' &&
+      error !== null &&
+      'code' in error &&
+      error.code === 'P2002'
+    ) {
+      throw ApiError.conflict('Email is already registered');
+    }
+    throw error;
+  }
+});
+
+export const changeMyPassword: RequestHandler = asyncHandler(async (req, res) => {
+  if (!req.user) throw ApiError.unauthorized('Authentication required');
+
+  const { currentPassword, newPassword } = req.body as z.output<
+    typeof changeCurrentUserPasswordBodySchema
+  >;
+  await changePassword(req.user.id, currentPassword, newPassword);
+  return res.status(200).json({ message: 'Password updated successfully' });
 });
 
 // Register

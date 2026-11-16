@@ -16,6 +16,7 @@ import { InterviewsPage } from './pages/InterviewsPage.tsx';
 import { HiringRequestsPage } from './pages/HiringRequestsPage.tsx';
 import { JobPostsWorkspacePage } from './pages/JobPostsWorkspacePage.tsx';
 import { HiringRequestDetailPage } from './pages/HiringRequestDetailPage.tsx';
+import { SettingsPage } from './pages/SettingsPage.tsx';
 import { DepartmentsPage } from './pages/DepartmentsPage.tsx';
 import { useAuthStore } from './stores/authStore';
 import { UserRole } from '@ats/shared-types';
@@ -46,6 +47,7 @@ const router = createBrowserRouter([
     { path: 'm/departments', element: <PageAccessGuard pageKey="m_depts"><DepartmentsPage /></PageAccessGuard> },
     { path: 'e/interviews', element: <PageAccessGuard pageKey="e_interviews"><EmployeeInterviewsPage /></PageAccessGuard> },
     { path: 'e/documents', element: <PageAccessGuard pageKey="e_documents"><EmployeeDocumentsPage /></PageAccessGuard> },
+    { path: 'settings', element: <PageAccessGuard pageKey="settings"><SettingsPage /></PageAccessGuard> },
     { path: 'jobs', element: <RoleRedirect applicant="/a/jobs" staff="/h/job-posts" /> },
     { path: 'applicants', element: <Navigate to="/h/applications" replace /> },
     { path: 'interviews', element: <RoleRedirect applicant="/a/interviews" employee="/e/interviews" staff="/h/interviews" /> },

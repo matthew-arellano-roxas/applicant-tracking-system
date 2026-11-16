@@ -223,3 +223,27 @@ export const resetPassword = async (
   });
   await cache.del(key);
 };
+
+export const changePassword = async (
+  userId: string,
+  currentPassword: string,
+  newPassword: string,
+): Promise<void> => {
+  const identity = await prisma.authIdentity.findUnique({
+    where: { userId },
+    select: { provider: true, hashPassword: true },
+  });
+  if (!identity || identity.provider !== 'PASSWORD') {
+    throw ApiError.badRequest('Password sign-in is not enabled for this account');
+  }
+
+  if (!(await bcrypt.compare(currentPassword, identity.hashPassword))) {
+    throw ApiError.badRequest('Current password is incorrect');
+  }
+
+  const hashPassword = await bcrypt.hash(newPassword, SALT_ROUNDS);
+  await prisma.authIdentity.update({
+    where: { userId },
+    data: { hashPassword },
+  });
+};

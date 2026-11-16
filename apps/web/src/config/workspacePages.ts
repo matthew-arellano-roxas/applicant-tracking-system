@@ -7,6 +7,7 @@ const admin = [UserRole.Admin] as const;
 const head = [UserRole.DepartmentHead] as const;
 const dean = [UserRole.Dean] as const;
 const employee = [UserRole.Employee] as const;
+const allRoles = [UserRole.Applicant, UserRole.Hr, UserRole.Admin, UserRole.DepartmentHead, UserRole.Dean, UserRole.Employee] as const;
 
 export const workspacePages: Page[] = [
   { key: 'a_jobs', label: 'Open jobs', path: '/a/jobs', roles: applicant, access: 'Browse open positions and apply using your own CV.' },
@@ -26,6 +27,7 @@ export const workspacePages: Page[] = [
   { key: 'm_depts', label: 'Departments', path: '/m/departments', roles: admin, access: 'Manage departments, heads, and membership.' },
   { key: 'e_interviews', label: 'My interviews', path: '/e/interviews', roles: employee, access: 'View interviews assigned to you and submit evaluations.' },
   { key: 'e_documents', label: 'My documents', path: '/e/documents', roles: employee, access: 'View your own employee document checklist.' },
+  { key: 'settings', label: 'Settings', path: '/settings', roles: allRoles, access: 'Update your account information and password.' },
 ];
 
 export type WorkspacePageKey = (typeof workspacePages)[number]['key'];

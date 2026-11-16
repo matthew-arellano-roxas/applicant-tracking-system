@@ -7,6 +7,7 @@ import {
   CalendarDays,
   LayoutDashboard,
   LogOut,
+  Settings2,
   UsersRound,
   X,
 } from 'lucide-react';
@@ -21,6 +22,7 @@ const navigationIcons = {
   h_dash: LayoutDashboard, h_apps: FileUser, h_requests: ClipboardList, h_posts: BriefcaseBusiness, h_interviews: CalendarDays, h_employees: UsersRound,
   d_requests: BriefcaseBusiness, d_eval: CalendarDays, n_queue: BriefcaseBusiness,
   m_users: UsersRound, m_depts: Building2, e_interviews: CalendarDays, e_documents: FileUser,
+  settings: Settings2,
 };
 
 type AppSidebarProps = {
