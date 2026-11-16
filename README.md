@@ -51,6 +51,8 @@ docker compose up --build
 Open the web app at `http://localhost:5173`; the API is available at `http://localhost:3000`.
 The API container pushes the Prisma schema to the local PostgreSQL database on startup. PostgreSQL
 and Redis data persist in Docker volumes. Stop the services with `docker compose down`.
+The Compose services use the API Dockerfile's `development` target; its default target is the
+compiled `production` image.
 
 For running the API outside Docker with `pnpm dev:api`, use `apps/api/.env.example` as a template
 for `apps/api/.env`.
