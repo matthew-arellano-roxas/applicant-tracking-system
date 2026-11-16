@@ -13,6 +13,7 @@ import {
   updateInterview,
 } from '@/controllers/interview.controller';
 import { requireAuth, requireRole } from '@/middlewares/auth.middleware';
+import { cacheGetResponse } from '@/middlewares/response-cache.middleware';
 import {
   createInterviewBodySchema,
   interviewIdParamsSchema,
@@ -29,6 +30,7 @@ const managers = [UserRole.Admin, UserRole.Hr];
 const interviewers = [UserRole.Employee, UserRole.DepartmentHead, UserRole.Dean];
 
 interviewRoute.use(requireAuth);
+interviewRoute.use(cacheGetResponse);
 
 interviewRoute.get(
   '/me',

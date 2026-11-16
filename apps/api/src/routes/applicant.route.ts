@@ -9,6 +9,7 @@ import {
   updateApplicationStatus,
 } from '@/controllers/applicant.controller';
 import { requireAuth, requireRole } from '@/middlewares/auth.middleware';
+import { cacheGetResponse } from '@/middlewares/response-cache.middleware';
 import {
   applicationIdParamsSchema,
   applicationListQuerySchema,
@@ -21,6 +22,7 @@ const applicantRoute = Router();
 const managerRoles = [UserRole.Admin, UserRole.Hr];
 
 applicantRoute.use(requireAuth);
+applicantRoute.use(cacheGetResponse);
 applicantRoute.post(
   '/',
   requireRole(UserRole.Applicant),

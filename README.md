@@ -38,6 +38,19 @@ pnpm dev:web      # Run only the web app
 pnpm build        # Build all workspace packages with a build script
 ```
 
+### Run the development stack with Docker
+
+Copy `apps/api/.env.example` to `apps/api/.env`, then add your Supabase, Groq, SMTP, and JWT values.
+Start the API, worker, web app, PostgreSQL, and Redis services from the repository root:
+
+```sh
+docker compose up --build
+```
+
+Open the web app at `http://localhost:5173`; the API is available at `http://localhost:3000`.
+The API container pushes the Prisma schema to the local PostgreSQL database on startup. PostgreSQL
+and Redis data persist in Docker volumes. Stop the services with `docker compose down`.
+
 Use pnpm for dependency changes too. For example, `pnpm --filter @ats/web add axios` adds a
 web-only dependency. The old `package-lock.json` files inside the moved apps are not used by the
 workspace; `pnpm install` at the root creates and updates the single `pnpm-lock.yaml`.

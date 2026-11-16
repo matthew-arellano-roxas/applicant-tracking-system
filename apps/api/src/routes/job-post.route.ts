@@ -9,6 +9,7 @@ import {
   updateJobPostStatus,
 } from '@/controllers/job-post.controller';
 import { requireAuth } from '@/middlewares/auth.middleware';
+import { cacheGetResponse } from '@/middlewares/response-cache.middleware';
 import { requireRole } from '@/middlewares/auth.middleware';
 import { UserRole } from '@/constants';
 import {
@@ -25,6 +26,7 @@ const jobPostReadRoles = Object.values(UserRole);
 const jobPostManagerRoles = [UserRole.Admin, UserRole.Hr];
 
 jobPostRoute.use(requireAuth);
+jobPostRoute.use(cacheGetResponse);
 jobPostRoute.get('/', requireRole(...jobPostReadRoles), validateRequest(jobPostListQuerySchema, 'query'), listJobPosts);
 jobPostRoute.post('/', requireRole(...jobPostManagerRoles), validateRequest(createJobPostBodySchema), createJobPost);
 jobPostRoute.get('/:id', requireRole(...jobPostReadRoles), validateRequest(jobPostIdParamsSchema, 'params'), getJobPost);

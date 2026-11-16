@@ -8,6 +8,7 @@ import {
   updateHiringRequestStatus,
 } from '@/controllers/hiring-request.controller';
 import { requireAuth } from '@/middlewares/auth.middleware';
+import { cacheGetResponse } from '@/middlewares/response-cache.middleware';
 import { requireRole } from '@/middlewares/auth.middleware';
 import { UserRole } from '@/constants';
 import {
@@ -35,6 +36,7 @@ const hiringRequestManagerRoles = [
 ];
 
 hiringRequestRoute.use(requireAuth);
+hiringRequestRoute.use(cacheGetResponse);
 hiringRequestRoute.get('/', requireRole(...hiringRequestReadRoles), validateRequest(hiringRequestListQuerySchema, 'query'), listHiringRequests);
 hiringRequestRoute.post('/', requireRole(...hiringRequestManagerRoles), validateRequest(createHiringRequestBodySchema), createHiringRequest);
 hiringRequestRoute.get(

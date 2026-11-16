@@ -13,6 +13,7 @@ import {
   updateDepartment,
 } from '@/controllers/department.controller';
 import { requireAuth } from '@/middlewares/auth.middleware';
+import { cacheGetResponse } from '@/middlewares/response-cache.middleware';
 import { requireRole } from '@/middlewares/auth.middleware';
 import { UserRole } from '@/constants';
 import {
@@ -39,6 +40,7 @@ const departmentManagerRoles = [UserRole.Admin, UserRole.Hr];
 const departmentMemberManagerRoles = [UserRole.Admin, UserRole.Hr, UserRole.DepartmentHead];
 
 departmentRoute.use(requireAuth);
+departmentRoute.use(cacheGetResponse);
 departmentRoute.get('/', requireRole(...departmentReadRoles), validateRequest(departmentListQuerySchema, 'query'), listDepartments);
 departmentRoute.post('/', requireRole(...departmentManagerRoles), validateRequest(createDepartmentBodySchema), createDepartment);
 departmentRoute.get('/:id', requireRole(...departmentReadRoles), validateRequest(departmentIdParamsSchema, 'params'), getDepartment);

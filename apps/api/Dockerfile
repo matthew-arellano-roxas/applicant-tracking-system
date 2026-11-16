@@ -1,23 +1,22 @@
-# ---------- Build stage ----------
-FROM node:22-alpine AS build
-WORKDIR /app
+FROM node:22-alpine
 
-COPY package*.json ./
-RUN npm ci
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
+
+RUN corepack enable && corepack prepare pnpm@11.7.0 --activate
+
+WORKDIR /workspace
+
+# Install from the monorepo root so pnpm can link workspace packages.
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY apps/api/package.json ./apps/api/package.json
+COPY apps/web/package.json ./apps/web/package.json
+COPY packages/shared-types/package.json ./packages/shared-types/package.json
+RUN pnpm install --frozen-lockfile
 
 COPY . .
-RUN npm run build
+RUN pnpm --filter @ats/shared-types build
+RUN pnpm --filter @ats/api exec prisma generate
 
-# ---------- Production stage ----------
-FROM node:22-alpine
-WORKDIR /app
-ENV NODE_ENV=production
-
-COPY package*.json ./
-RUN npm ci --omit=dev
-
-COPY --from=build /app/dist ./dist
-
-USER node
-EXPOSE 3000
-CMD ["node", "dist/server.js"]
+EXPOSE 3000 5173
+CMD ["pnpm", "--filter", "@ats/api", "dev:api"]

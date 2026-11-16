@@ -17,6 +17,7 @@ import passport from 'passport';
 import { passwordStrategy } from '@/strategies';
 import cookieParser from 'cookie-parser';
 import { requestLogger } from '@/middlewares/request-logger.middleware';
+import { invalidateGetResponseCache } from '@/middlewares/response-cache.middleware';
 const app = express();
 
 app.use(requestLogger);
@@ -26,6 +27,7 @@ app.use(cookieParser());
 
 passport.use('local', passwordStrategy);
 app.use(passport.initialize());
+app.use(invalidateGetResponseCache);
 
 app.use(authRoute);
 app.use('/applications', applicantRoute);

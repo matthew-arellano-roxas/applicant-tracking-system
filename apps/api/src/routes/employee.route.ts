@@ -22,6 +22,7 @@ import {
   updateEmployee,
 } from '@/controllers/employee.controller';
 import { requireAuth } from '@/middlewares/auth.middleware';
+import { cacheGetResponse } from '@/middlewares/response-cache.middleware';
 import { requireRole } from '@/middlewares/auth.middleware';
 import { UserRole } from '@/constants';
 import {
@@ -37,6 +38,7 @@ const employeeReadRoles = [UserRole.Admin, UserRole.Hr, UserRole.Dean, UserRole.
 const employeeManagerRoles = [UserRole.Admin, UserRole.Hr];
 
 employeeRoute.use(requireAuth);
+employeeRoute.use(cacheGetResponse);
 employeeRoute.get(
   '/me/document-status',
   requireRole(...employeeDocumentRoles.staff),
