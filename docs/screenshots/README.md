@@ -10,7 +10,6 @@ These are the screenshots currently used by the [main README](../../README.md) a
 
 ## Role POVs
 
-- `applicant-pov.png`
 - `hr-pov.png`
 - `dean-pov.png`
 - `admin-pov.png`

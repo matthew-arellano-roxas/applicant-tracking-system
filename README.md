@@ -52,25 +52,9 @@ Department Head submits staffing request
 
 Access to pages and actions depends on the signed-in user's role.
 
-## Demo accounts
+## Demo
 
-The seed creates these demo login usernames. All seeded accounts share the password configured with `SEED_PASSWORD`; choose your own value in `apps/api/.env` before seeding. The usernames are app accounts, not supplied email inboxes.
-
-| Role | Demo username |
-| --- | --- |
-| Administrator | `demo.admin@gmail.com` |
-| Applicant | `demo.applicant@gmail.com` |
-| HR | `demo.hr@gmail.com` |
-| Dean | `demo.dean@gmail.com` |
-| Department Head — Computer Studies | `demo.departmenthead.cs@gmail.com` |
-| Department Head — Education | `demo.departmenthead.education@gmail.com` |
-| Department Head — Business | `demo.departmenthead.business@gmail.com` |
-| Employee — IT | `demo.employee.it@gmail.com` |
-| Employee — Accounting | `demo.employee.accounting@gmail.com` |
-| Employee — HR | `demo.employee.hr@gmail.com` |
-| Employee — Library | `demo.employee.library@gmail.com` |
-
-See [Demo setup](docs/setup/README.md#seed-demo-data) for the seed command and Docker instructions. Seed demo data only into a development database.
+Explore role-based workflows with seeded sample data. See the [demo setup guide](docs/setup/README.md#seed-demo-data) for account details and instructions.
 
 ## Screenshots
 
@@ -78,21 +62,28 @@ The sign-in screen and example role workspaces are shown below. The [page guide]
 
 ### Sign in
 
-![BCP ATS sign-in screen](docs/screenshots/sign-in.png)
+<p align="center">
+  <img src="docs/screenshots/sign-in.png" alt="BCP ATS sign-in screen" width="820">
+</p>
 
 ### Role workspaces
 
-| Applicant | Human Resources |
-| --- | --- |
-| ![Applicant workspace](docs/screenshots/applicant-pov.png) | ![HR workspace](docs/screenshots/hr-pov.png) |
+<p align="center"><strong>Applicant</strong> &nbsp; · &nbsp; <strong>Human Resources</strong></p>
+<p align="center">
+  <img src="docs/screenshots/applicant-open-jobs-page.png" alt="Applicant workspace" width="48%">
+  <img src="docs/screenshots/hr-pov.png" alt="Human Resources workspace" width="48%">
+</p>
 
-| Dean | Administrator |
-| --- | --- |
-| ![Dean workspace](docs/screenshots/dean-pov.png) | ![Administrator workspace](docs/screenshots/admin-pov.png) |
+<p align="center"><strong>Dean</strong> &nbsp; · &nbsp; <strong>Administrator</strong></p>
+<p align="center">
+  <img src="docs/screenshots/dean-pov.png" alt="Dean workspace" width="48%">
+  <img src="docs/screenshots/admin-pov.png" alt="Administrator workspace" width="48%">
+</p>
 
-| Employee |
-| --- |
-| ![Employee workspace](docs/screenshots/employee-pov.png) |
+<p align="center"><strong>Employee</strong></p>
+<p align="center">
+  <img src="docs/screenshots/employee-pov.png" alt="Employee workspace" width="70%">
+</p>
 
 ## Project background
 
