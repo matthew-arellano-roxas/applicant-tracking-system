@@ -1,255 +1,81 @@
-# Applicant Tracking System for Bestlink College of the Philippines
+# Applicant Tracking System
 
-> A centralized platform for managing the recruitment of teaching and non-teaching personnel, from staffing request to department assignment.
+The **Applicant Tracking System (ATS)** for Bestlink College of the Philippines is a centralized recruitment platform for teaching and non-teaching positions. It brings staffing requests, approvals, job postings, applications, interviews, hiring decisions, and employee records into one role-based workflow.
 
-**Course:** Software Development (Project-Based Elective 3)
-**Instructor:** Engr. Patricia Praxedes A. Gloria
-**Program:** 4th Year, Computer Engineering
-**Institution:** College of Computer Studies, Computer Engineering Department, Bestlink College of the Philippines
+The system is designed to replace scattered records and manual handoffs with a shared view of the recruitment process. Applicants can find and apply for open positions, while authorized staff can manage each step from identifying a staffing need through onboarding a new hire.
 
----
+## What the system does
 
-## Table of Contents
+- Coordinates staffing requests from Department Heads and approval by the Dean.
+- Lets HR manage approved hiring requests and publish job openings.
+- Gives applicants a place to register, browse openings, submit a PDF CV, apply, and track application progress.
+- Organizes application review, advisory CV screening, interviews, and interview evaluations.
+- Supports hiring decisions and the transition from applicant to employee record.
+- Helps HR maintain employee records and document checklists.
+- Provides role-specific workspaces for applicants, HR, Department Heads, the Dean, employees, and administrators.
+- Lets users update their account information and change their password.
 
-- [Development Setup](#development-setup)
-- [Overview](#overview)
-- [Problem Statement](#problem-statement)
-- [Objectives](#objectives)
-- [Recruitment Workflow](#recruitment-workflow)
-- [User Roles and Features](#user-roles-and-features)
-- [System Design](#system-design)
-- [Object-Oriented Concepts](#object-oriented-concepts)
-- [Project Documentation](#project-documentation)
-- [Recommendations and Future Improvements](#recommendations-and-future-improvements)
-- [Development Team](#development-team)
+CV screening is an initial aid for reviewing applications. It does not make the final hiring decision; authorized personnel remain responsible for candidate selection.
 
----
+## Recruitment workflow
 
-## Development Setup
+```text
+Department Head submits staffing request
+                 ↓
+          Dean reviews request
+                 ↓
+       HR manages approved request
+                 ↓
+          HR publishes job post
+                 ↓
+ Applicant submits application and CV
+                 ↓
+       Application and CV review
+                 ↓
+   Interview scheduling and evaluation
+                 ↓
+          Hiring decision
+                 ↓
+ Employee record and department assignment
+```
 
-This repository uses pnpm workspaces for the API, web app, and shared TypeScript contracts.
-Run package commands from the repository root so pnpm links `@ats/shared-types` into both apps.
+## Who uses it
+
+| Role | What they can do |
+| --- | --- |
+| **Applicant** | Create and verify an account, browse open positions, manage a CV, apply for jobs, track application status, and view interviews. |
+| **Human Resources (HR)** | View recruitment activity, manage hiring requests and job posts, review applications, manage interviews, and maintain employee records and document checklists. |
+| **Department Head** | Submit and track department staffing requests, review applicants, and complete assigned interview evaluations. |
+| **Dean** | Review, approve, or reject pending staffing requests. |
+| **Employee** | View assigned interviews and a personal employee document checklist. |
+| **Administrator** | Manage users, roles, and departments. |
+
+Access to pages and actions depends on the signed-in user's role.
+
+## Project background
+
+Recruitment involves multiple people and stages. When applicant information and hiring decisions are kept in separate tools or manual records, it becomes harder to find information, track progress, coordinate reviews, and reuse details when a candidate is hired. This project provides a shared system to make those activities easier to follow.
+
+The project was developed as a requirement for **Software Development (Project-Based Elective 3)** in the Computer Engineering program at the **College of Computer Studies, Bestlink College of the Philippines**, under **Engr. Patricia Praxedes A. Gloria**.
+
+## Documentation
+
+| Guide | What it covers |
+| --- | --- |
+| [Documentation home](docs/README.md) | Navigation to all project guides |
+| [Setup and development](docs/setup/README.md) | Local development, Docker, environment variables, and deployment notes |
+| [Features and roles](docs/features/README.md) | Detailed goals, workflow, and role capabilities |
+| [Pages and screenshots](docs/pages/README.md) | Page-by-page guide, routes, access, and screenshot locations |
+| [Architecture](docs/architecture/README.md) | Technology, workspace layout, and design notes |
+| [Project information](docs/project/README.md) | Academic scope, project documentation, team, and future work |
+
+## Run locally
+
+For the full instructions, see [Setup and development](docs/setup/README.md). In brief:
 
 ```sh
 pnpm install
-pnpm dev          # Run the API and web app
-pnpm dev:api      # Run only the API
-pnpm dev:web      # Run only the web app
-pnpm build        # Build all workspace packages with a build script
+pnpm dev
 ```
 
-### Run the development stack with Docker
-
-Replace the placeholder values in the API and worker `environment` sections in `docker-compose.yaml`
-with your Supabase, Groq, SMTP, and JWT values. Compose does not load `apps/api/.env` for this stack.
-Start the API, worker, web app, PostgreSQL, and Redis services from the repository root:
-
-```sh
-docker compose up --build
-```
-
-Open the web app at `http://localhost:5173`; the API is available at `http://localhost:3000`.
-The API container pushes the Prisma schema to the local PostgreSQL database on startup. PostgreSQL
-and Redis data persist in Docker volumes. Stop the services with `docker compose down`.
-The Compose services use the API Dockerfile's `development` target; its default target is the
-compiled `production` image.
-
-For running the API outside Docker with `pnpm dev:api`, use `apps/api/.env.example` as a template
-for `apps/api/.env`.
-
-### API rate limits
-
-All API routes have a Redis-backed baseline limit of 1,000 requests per IP per 15 minutes.
-Authentication endpoints also use stricter per-IP limits: login, registration verification, and
-password-reset completion allow 10 requests per 15 minutes; registration, password-reset requests,
-and password changes allow 5. Existing per-code OTP attempt limits still apply.
-
-When deploying behind a reverse proxy, set `TRUST_PROXY_HOPS` to the exact number of trusted proxies
-so Express can identify client IPs correctly (for example, `1` for one Nginx proxy). Do not expose
-the API directly to untrusted clients when trusting forwarded IP headers.
-
-Credentialed CORS requests are allowed only from the origin configured by `FRONTEND_URL`.
-Set it to the frontend's origin (for example, `https://ats.example.com`).
-
-Use pnpm for dependency changes too. For example, `pnpm --filter @ats/web add axios` adds a
-web-only dependency. The old `package-lock.json` files inside the moved apps are not used by the
-workspace; `pnpm install` at the root creates and updates the single `pnpm-lock.yaml`.
-
-Add cross app contracts to `packages/shared-types/src/index.ts`, then import them from either app:
-
-```ts
-import type { ApiResponse } from '@ats/shared-types';
-```
-
-Request validation schemas are shared too. Import one from the package root or the `schemas` subpath,
-and derive its TypeScript type with Zod when needed:
-
-```ts
-import { createApplicationBodySchema } from '@ats/shared-types/schemas';
-import type { z } from 'zod';
-
-export type CreateApplicationInput = z.infer<typeof createApplicationBodySchema>;
-const result = createApplicationBodySchema.safeParse({ jobPostId: 'job-123' });
-```
-
-The shared package is built before the root dev commands and as a dependency of workspace builds.
-API schema imports under `@/schemas/*` continue to work through re-export files.
-
-Add dependencies to a specific workspace with `pnpm --filter @ats/api add <package>` or
-`pnpm --filter @ats/web add <package>`.
-
-### Web UI conventions
-
-- Use React Router Data Mode for application routes. Keep shared navigation and page chrome in the
-  layout route, and render nested pages through its `<Outlet />`.
-- Follow the shadcn preset configured in `apps/web/components.json` (`base-luma`, `mist`, and the
-  `lucide` icon library). Use the existing CSS theme variables and semantic Tailwind classes such
-  as `bg-background`, `text-foreground`, `bg-card`, `border-border`, and `text-muted-foreground`.
-- Build prebuilt interface elements with shadcn/ui components and use `lucide-react` for icons.
-  Keep spacing, colors, borders, and radii consistent with the preset; avoid introducing one-off
-  colors or a separate visual system for individual pages.
-- Use Tailwind CSS for page layout and component styling.
-- Use Zustand for client state shared across routes or components, such as the authenticated user and
-  session status. Keep state used by only one page or component local, and organize store state and
-  actions by domain. Keep API requests and reusable behavior in hooks or service modules so UI
-  components focus on rendering and event wiring.
-
----
-
-## Overview
-
-Recruiting teaching and non-teaching personnel involves many steps: identifying staffing needs, reviewing staffing requests, posting job openings, screening applicants, conducting interviews, making hiring decisions, and assigning new hires to departments. When these steps are handled manually or in separate systems, tracking applicants and keeping their information organized becomes difficult.
-
-The **Applicant Tracking System (ATS)** for Bestlink College of the Philippines centralizes and simplifies this process. It gives HR, Department Heads, the Dean, applicants, and administrators a single platform to manage and monitor recruitment from the first staffing request to the final hiring and department assignment.
-
-## Problem Statement
-
-Without a centralized system, the recruitment process suffers from the following:
-
-| Cause                                       | Effect                                                                             |
-| ------------------------------------------- | ---------------------------------------------------------------------------------- |
-| Separate or manual applicant records        | Applicant information is hard to organize and retrieve                             |
-| Multiple recruitment stages                 | Hard to determine an applicant's current status                                    |
-| Multiple personnel involved                 | Information must be coordinated between HR, Department Heads, the Dean, and others |
-| Large number of applicants                  | Manual review of candidates takes significant time and effort                      |
-| Lack of centralized recruitment information | HR, Department Heads, and the Dean struggle to monitor the overall process         |
-| Repeated encoding of employee information   | Data must be re-entered when an applicant becomes an employee                      |
-
-## Objectives
-
-- Provide a centralized platform for staffing requests, job postings, applicant data, screening results, application statuses, interview records, hiring recommendations, and employee records.
-- Support an approval workflow between Department Heads, the Dean, and HR.
-- Help identify potentially qualified applicants through an initial screening feature, while leaving the final selection to authorized personnel.
-- Reduce repeated data entry by creating or updating employee records once an applicant is hired.
-- Give applicants a way to view openings, apply online, and monitor their application status.
-
-## Recruitment Workflow
-
-```
-Staffing Request → Dean Approval → Job Posting → Application → Initial Screening
-→ Candidate Selection → Interview & Evaluation → Hiring Recommendation
-→ Dean Approval → Employee Record & Department Assignment
-```
-
-1. **Staffing request**: A Department Head identifies the need for additional personnel and submits a request.
-2. **Dean approval**: The Dean reviews and approves the request, then forwards it to HR.
-3. **Job posting**: HR creates and publishes a posting with the position requirements.
-4. **Application**: Applicants browse openings and submit applications online.
-5. **Initial screening**: The system evaluates applicants against the position's qualifications to flag potential matches.
-6. **Candidate selection**: The Department Head reviews screened applicants and selects who proceeds to interview.
-7. **Interview and evaluation**: Interview and evaluation details are recorded against the application.
-8. **Hiring recommendation**: The Department Head submits a recommendation, which the Dean reviews before the final decision.
-9. **Employee record and assignment**: Once accepted, the system creates or updates the employee record and assigns the hire to a department.
-
-## User Roles and Features
-
-### Applicant
-
-- Create an account and manage personal information
-- View available job openings
-- Submit applications
-- Monitor application status
-
-### Human Resources (HR)
-
-- Manage staffing requests
-- Create and manage job postings
-- View applications and screen applicants
-- Update application statuses
-- Manage employee records
-
-### Department Head
-
-- Submit staffing requests
-- Review qualified applicants and select candidates
-- Participate in interviews and provide candidate evaluations
-- Submit hiring recommendations
-
-### Dean
-
-- Review and approve or reject staffing requests
-- Review and approve or reject hiring recommendations
-
-### Administrator
-
-- Manage users and roles
-- Manage departments
-- Configure system settings
-
-## System Design
-
-The project documentation includes the following analysis and design artifacts:
-
-- **Cause and Effect Analysis**: Fishbone diagram using the 6Ms
-- **Project Schedule**: Four-week schedule and network layout
-- **PERT**: Activity sequence, dependencies, and expected durations (planning, requirements gathering, system analysis, system design, database design, development, testing, debugging, documentation, final evaluation)
-- **Functional Analysis**: Use case diagram, context diagram, data flow diagram, class diagram, and system flow diagram
-- **Object-Oriented Design**: Classes for users, applicants, employees, HR, Department Heads, the Dean, administrators, departments, staffing requests, job postings, applications, screening, interviews, evaluations, and hiring recommendations
-
-## Object-Oriented Concepts
-
-| Principle         | Application in the system                                                                                                                       |
-| ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Encapsulation** | Applicant data and application-related functions are kept inside their own classes                                                              |
-| **Inheritance**   | Applicant, HR, Department Head, Dean, and Admin inherit shared properties (user ID, name, email, login) from a base `User` class                |
-| **Polymorphism**  | Each role performs actions suited to its responsibility, e.g. a Department Head submits recommendations while the Dean approves or rejects them |
-| **Abstraction**   | Users only see the functions relevant to their role, hiding implementation details                                                              |
-
-## Project Documentation
-
-The full project paper covers:
-
-1. Brief Description (background, respondents, interview guidelines)
-2. Cause and Effect Analysis
-3. Project Schedule
-4. Program Evaluation Review Technique (PERT)
-5. Functional Analysis
-6. Object-Oriented Design
-7. Object-Oriented Programming
-8. Conclusion and Recommendation
-9. Biography
-
-## Recommendations and Future Improvements
-
-- Automated notifications
-- Advanced applicant filtering
-- Interview scheduling
-- Application history
-- Recruitment reports
-- Improved security
-- Regular maintenance and updates based on feedback from HR, Department Heads, the Dean, applicants, and other users
-
-## Development Team
-
-| Name                     | Role / Contribution           |
-| ------------------------ | ----------------------------- |
-| Matthew A. Roxas         | Main Developer, system design |
-| John Mark V. Duran       | Team lead                     |
-| Shane Vincent L. Botona  | Paper management              |
-| Kenth Jairrus M. Omanita | Diagrams                      |
-| Mark Ranjay Solaver      | Team support                  |
-| Romeo Jr. Seneres        | Team support                  |
-
----
-
-_Developed as a requirement for Software Development at Bestlink College of the Philippines, College of Computer Studies, Computer Engineering Department._
+The API also needs its configured PostgreSQL, Redis, and integration services. Alternatively, use the Docker Compose development stack described in the [setup guide](docs/setup/README.md).
