@@ -67,6 +67,7 @@ services:
       JWT_SECRET: replace-with-a-long-random-secret
       JWT_ACCESS_SECRET: replace-with-a-different-long-random-secret
       JWT_REFRESH_SECRET: replace-with-another-long-random-secret
+      SEED_PASSWORD: choose-your-own-demo-password
     command:
       - sh
       - -c

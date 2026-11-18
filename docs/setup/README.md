@@ -60,6 +60,40 @@ pnpm build
 pnpm lint
 ```
 
+## Seed demo data
+
+The seed creates demo logins and linked recruitment data. Set your own `SEED_PASSWORD` value in `apps/api/.env` (minimum 8 characters), then run the seed from the repository root:
+
+```sh
+pnpm --filter @ats/api exec prisma db seed --config prisma7.config.ts
+```
+
+The seeded demo usernames are:
+
+| Role | Username |
+| --- | --- |
+| Administrator | `demo.admin@gmail.com` |
+| Applicant | `demo.applicant@gmail.com` |
+| HR | `demo.hr@gmail.com` |
+| Dean | `demo.dean@gmail.com` |
+| Department Head — Computer Studies | `demo.departmenthead.cs@gmail.com` |
+| Department Head — Education | `demo.departmenthead.education@gmail.com` |
+| Department Head — Business | `demo.departmenthead.business@gmail.com` |
+| Employee — IT | `demo.employee.it@gmail.com` |
+| Employee — Accounting | `demo.employee.accounting@gmail.com` |
+| Employee — HR | `demo.employee.hr@gmail.com` |
+| Employee — Library | `demo.employee.library@gmail.com` |
+
+All seed accounts use the same configured password. The seed also creates 30 fictional applicant accounts (`candidate01@example.com` through `candidate30@example.com`) and associated hiring requests, job posts, applications, scores, interviews, and evaluations. It is repeatable and refuses to run when `NODE_ENV=production`. It creates application records, but does not upload CV files; the applicant demo account must upload a PDF before submitting another application.
+
+Compose does not load `apps/api/.env`. Replace the `SEED_PASSWORD` placeholder under the API service in [`docker-compose.yaml`](../../docker-compose.yaml), then run:
+
+```sh
+docker compose exec api pnpm --filter @ats/api exec prisma db seed --config prisma7.config.ts
+```
+
+Do not use demo accounts or the demo password in production.
+
 ## Run with Docker Compose
 
 The Compose file includes the API, worker, web app, PostgreSQL, and Redis services. Its API and worker environment variables are written directly in [`docker-compose.yaml`](../../docker-compose.yaml) as placeholders. Replace the placeholder integration credentials there before starting the stack. Compose does **not** load `apps/api/.env`.

@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import type { ConnectionOptions } from 'bullmq';
 
 const queueUrl = process.env.REDIS_QUEUE_URL ? new URL(process.env.REDIS_QUEUE_URL) : undefined;

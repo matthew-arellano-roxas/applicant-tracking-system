@@ -2,86 +2,110 @@
 
 [Back to documentation](../README.md) · [Repository home](../../README.md)
 
-This guide maps the current screens to their routes and describes what each view contains. Authenticated workspace pages require a signed-in user with the listed role. Screenshots are intentionally left for the project maintainers to add.
-
-## Add screenshots
-
-Put screenshots in `docs/screenshots/` using the filenames listed with each page. To display a screenshot below the relevant table, add a Markdown image line using its relative path:
-
-```md
-![Sign-in page](../screenshots/sign-in.png)
-```
-
-The [screenshot folder README](../screenshots/README.md) repeats the suggested filenames. Use test data or obscure personal information before committing screenshots.
+Browse the screenshots below to see the current application views. Authenticated workspace pages require a signed-in user with the listed role. See the [screenshot folder](../screenshots/README.md) for the uploaded image list.
 
 ## Public and account pages
 
-| Page | Route | What the view contains | Screenshot file |
+| Page | Route | What the view contains | Screenshot |
 | --- | --- | --- | --- |
-| Sign in | `/login` | Email and password sign-in form, password visibility toggle, and links to account registration and password reset. | `sign-in.png` |
-| Create account | `/register` | Applicant registration form followed by email verification. | `register.png` |
-| Forgot password | `/forgot-password` | Email reset-code request, verification, and new-password form. | `forgot-password.png` |
+| Sign in | `/login` | Email and password sign-in, password visibility toggle, and account links. | `sign-in.png` |
+| Create account | `/register` | Applicant registration form. | `sign-up.png` |
+| Email verification | Registration step | Enter the verification code sent to the applicant. | `verify-email-page.png` |
+| Forgot password | `/forgot-password` | Request a reset code and set a new password. | Not captured |
+
+![Sign-in page](../screenshots/sign-in.png)
+
+![Create account page](../screenshots/sign-up.png)
+
+![Email verification page](../screenshots/verify-email-page.png)
 
 ## Applicant pages
 
-| Page | Route | What the view contains | Screenshot file |
+| Page | Route | What the view contains | Screenshot |
 | --- | --- | --- | --- |
-| Open jobs | `/a/jobs` | Open positions, search and filters, CV readiness, and application actions. | `applicant-jobs.png` |
-| My applications | `/a/applications` | Submitted applications, current status, progress stages, and CV review status. | `applicant-applications.png` |
-| My interviews | `/a/interviews` | The applicant's interview schedule and joining or location details when provided. | `applicant-interviews.png` |
-| My CV | `/a/cv` | Upload, replace, or download a PDF CV (up to 5 MB). | `applicant-cv.png` |
+| Open jobs | `/a/jobs` | Browse, search, and filter open positions; apply after uploading a CV. | `applicant-open-jobs-page.png` |
+| My applications | `/a/applications` | View submitted applications, progress, and CV review status. | `applicant-my-application-page.png` |
+| My interviews | `/a/interviews` | View the applicant's interview schedule and details. | `applicant-my-interview-page.png` |
+| My CV | `/a/cv` | Upload, replace, or download a PDF CV (up to 5 MB). | `applicant-cv-upload-page.png` |
 
-## HR and Administrator pages
+![Open jobs](../screenshots/applicant-open-jobs-page.png)
 
-HR and Administrators can access the following recruitment pages:
+![My applications](../screenshots/applicant-my-application-page.png)
 
-| Page | Route | What the view contains | Screenshot file |
+![My interviews](../screenshots/applicant-my-interview-page.png)
+
+![My CV](../screenshots/applicant-cv-upload-page.png)
+
+## HR pages
+
+| Page | Route | What the view contains | Screenshot |
 | --- | --- | --- | --- |
-| Recruitment overview | `/h/dashboard` | Recruitment summary metrics and items that need attention. | `hr-overview.png` |
-| Applications | `/h/applications` | Applicant review and application management. | `hr-applications.png` |
-| Hiring requests | `/h/job-posts` | Hiring request list and request-management workspace. | `hr-hiring-requests.png` |
-| Published job posts | `/h/job-posts/published` | Published positions and controls for managing them. | `hr-job-posts.png` |
-| Hiring request details | `/h/hiring-requests/:id` | Details and actions for a selected hiring request. | `hr-request-details.png` |
-| Interviews | `/h/interviews` | Interview scheduling and interview management. | `hr-interviews.png` |
-| Employee documents | `/h/employees` | Employee records and document checklist management. | `hr-employees.png` |
+| Recruitment overview | `/h/dashboard` | Recruitment summary and items needing attention. | `recruitment-overview-page.png` |
+| Applications | `/h/applications` | Search and review applications, screening results, and candidate status. | `recruitment-application-page.png` |
+| Hiring requests | `/h/job-posts` | Review requests and their approval status. | `recruitment-hiring-request-page.png` |
+| Published job posts | `/h/job-posts/published` | Browse and manage published job openings. | `recruitment-job-post-page.png` |
+| Interviews | `/h/interviews` | Schedule interviews and manage evaluations. | `recruitment-interview-page.png` |
+| Employee documents | `/h/employees` | Browse employee records and their document checklists. | `recruitment-employee-document-page.png` |
+
+![Recruitment overview](../screenshots/recruitment-overview-page.png)
+
+![Applications](../screenshots/recruitment-application-page.png)
+
+![Hiring requests](../screenshots/recruitment-hiring-request-page.png)
+
+![Published job posts](../screenshots/recruitment-job-post-page.png)
+
+![Interviews](../screenshots/recruitment-interview-page.png)
+
+![Employee records and documents](../screenshots/recruitment-employee-document-page.png)
 
 ## Department Head pages
 
-| Page | Route | What the view contains | Screenshot file |
+| Page | Route | What the view contains | Screenshot |
 | --- | --- | --- | --- |
-| Staffing requests | `/d/requests` | Requests for the Department Head's assigned department. | `department-head-requests.png` |
-| Request details | `/d/requests/:id` | Detail view for a selected staffing request. | `department-head-request-details.png` |
-| Interview evaluations | `/d/evaluations` | Assigned interviews and evaluation workflow. | `department-head-evaluations.png` |
+| Staffing requests | `/d/requests` | Submit and track requests for the Department Head's department. | Not captured |
+| Request details | `/d/requests/:id` | View details for a selected staffing request. | Not captured |
+| Interview evaluations | `/d/evaluations` | Review assigned interviews and submit evaluations. | Not captured |
 
 ## Dean pages
 
-| Page | Route | What the view contains | Screenshot file |
+| Page | Route | What the view contains | Screenshot |
 | --- | --- | --- | --- |
-| Hiring approvals | `/n/approvals` | Pending staffing requests with approve and reject actions. | `dean-approvals.png` |
+| Hiring approvals | `/n/approvals` | Review pending staffing requests and approve or reject them. | `recruitment-hiring-approval-page.png` |
+
+![Hiring approvals](../screenshots/recruitment-hiring-approval-page.png)
 
 ## Administrator pages
 
-| Page | Route | What the view contains | Screenshot file |
+| Page | Route | What the view contains | Screenshot |
 | --- | --- | --- | --- |
-| Users and roles | `/m/users` | Search and filter users, review account information, and assign roles. | `admin-users.png` |
-| Departments | `/m/departments` | Manage departments and their membership. | `admin-departments.png` |
+| Users and roles | `/m/users` | Search users and assign account roles. | `recruiitment-user-role-page.png` |
+| Departments | `/m/departments` | Manage departments, department heads, and membership. | `recruitment-department-page.png` |
+
+![Users and roles](../screenshots/recruiitment-user-role-page.png)
+
+![Departments](../screenshots/recruitment-department-page.png)
 
 ## Employee pages
 
-| Page | Route | What the view contains | Screenshot file |
+| Page | Route | What the view contains | Screenshot |
 | --- | --- | --- | --- |
-| My interviews | `/e/interviews` | Interviews assigned to the employee and evaluation actions. | `employee-interviews.png` |
-| My documents | `/e/documents` | Personal employee document checklist and completion status. | `employee-documents.png` |
+| My interviews | `/e/interviews` | View interviews assigned to the employee. | Not captured |
+| My documents | `/e/documents` | View the employee's personal document checklist and status. | `employee-my-document-page.png` |
+
+![My employee documents](../screenshots/employee-my-document-page.png)
 
 ## Shared account page
 
-| Page | Route | What the view contains | Screenshot file |
+| Page | Route | What the view contains | Screenshot |
 | --- | --- | --- | --- |
-| Settings | `/settings` | Update account information and change the current password. | `settings.png` |
+| Settings | `/settings` | Update account information and change the password. | `settings-page.png` |
+
+![Settings](../screenshots/settings-page.png)
 
 ## Route shortcuts
 
-These older, shorter routes redirect to the role-specific pages above; they do not have separate page views:
+These older routes redirect to role-specific pages; they do not have separate screenshots:
 
 | Shortcut | Destination |
 | --- | --- |

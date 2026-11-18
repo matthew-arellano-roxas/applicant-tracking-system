@@ -52,6 +52,48 @@ Department Head submits staffing request
 
 Access to pages and actions depends on the signed-in user's role.
 
+## Demo accounts
+
+The seed creates these demo login usernames. All seeded accounts share the password configured with `SEED_PASSWORD`; choose your own value in `apps/api/.env` before seeding. The usernames are app accounts, not supplied email inboxes.
+
+| Role | Demo username |
+| --- | --- |
+| Administrator | `demo.admin@gmail.com` |
+| Applicant | `demo.applicant@gmail.com` |
+| HR | `demo.hr@gmail.com` |
+| Dean | `demo.dean@gmail.com` |
+| Department Head — Computer Studies | `demo.departmenthead.cs@gmail.com` |
+| Department Head — Education | `demo.departmenthead.education@gmail.com` |
+| Department Head — Business | `demo.departmenthead.business@gmail.com` |
+| Employee — IT | `demo.employee.it@gmail.com` |
+| Employee — Accounting | `demo.employee.accounting@gmail.com` |
+| Employee — HR | `demo.employee.hr@gmail.com` |
+| Employee — Library | `demo.employee.library@gmail.com` |
+
+See [Demo setup](docs/setup/README.md#seed-demo-data) for the seed command and Docker instructions. Seed demo data only into a development database.
+
+## Screenshots
+
+The sign-in screen and example role workspaces are shown below. The [page guide](docs/pages/README.md) includes screenshots of individual pages.
+
+### Sign in
+
+![BCP ATS sign-in screen](docs/screenshots/sign-in.png)
+
+### Role workspaces
+
+| Applicant | Human Resources |
+| --- | --- |
+| ![Applicant workspace](docs/screenshots/applicant-pov.png) | ![HR workspace](docs/screenshots/hr-pov.png) |
+
+| Dean | Administrator |
+| --- | --- |
+| ![Dean workspace](docs/screenshots/dean-pov.png) | ![Administrator workspace](docs/screenshots/admin-pov.png) |
+
+| Employee |
+| --- |
+| ![Employee workspace](docs/screenshots/employee-pov.png) |
+
 ## Project background
 
 Recruitment involves multiple people and stages. When applicant information and hiring decisions are kept in separate tools or manual records, it becomes harder to find information, track progress, coordinate reviews, and reuse details when a candidate is hired. This project provides a shared system to make those activities easier to follow.
