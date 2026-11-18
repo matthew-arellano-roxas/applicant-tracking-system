@@ -26,9 +26,7 @@ const apiRateLimit = createRateLimit({
   limit: 1_000,
   windowMs: 15 * 60_000,
 });
-const frontendOrigin = env.FRONTEND_URL
-  ? new URL(env.FRONTEND_URL).origin
-  : undefined;
+const frontendOrigin = env.FRONTEND_URL ? new URL(env.FRONTEND_URL).origin : undefined;
 
 const trustProxyHopsValue = process.env.TRUST_PROXY_HOPS;
 if (trustProxyHopsValue !== undefined) {
@@ -74,6 +72,8 @@ app.get('/', (_req: Request, res: Response) => {
 
 app.use(errorHandler);
 
-app.listen(env.PORT, () => {
-  console.log(`Server running on http://localhost:${env.PORT}`);
+const port = Number(env.PORT ?? 3000);
+
+app.listen(port, '0.0.0.0', () => {
+  console.log(`Server listening on port ${port}`);
 });
