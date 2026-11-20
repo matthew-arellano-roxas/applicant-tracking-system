@@ -128,8 +128,12 @@ Review [`apps/api/.env.example`](../../apps/api/.env.example) for the environmen
 
 ## Deployment notes
 
+<<<<<<< HEAD
 For a Render deployment without a Background Worker, create one Docker Web Service from the repository root and use `apps/api/Dockerfile`. Leave the service's start command at its Dockerfile default; the production image starts both the API and worker and stops the sibling process if either exits. Set the API's `FRONTEND_URL` to the Vercel origin and configure the database, Redis, and integration credentials in Render. Render supplies the API `PORT`.
 
 The worker shares the API service's lifecycle. On Render's free web service, the service can spin down while idle, so queued jobs will not be processed until it wakes. Use an always-on service if jobs must run continuously.
+=======
+For Render web services, set the health check path to `/health`.
+>>>>>>> 0d768652f28c3174a597795f766fb4b53a209b1d
 
 The checked-in Compose setup is for local development: it uses placeholder integration values and runs `prisma db push`. Do not deploy it as-is or use `db push` against a production database. A production deployment needs production secrets, HTTPS-aware cookie/CORS settings, managed or secured PostgreSQL and Redis, an appropriate trusted-proxy configuration, and a reviewed Prisma migration strategy.
