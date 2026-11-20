@@ -44,4 +44,4 @@ COPY --from=build /workspace/packages/shared-types/dist ./packages/shared-types/
 RUN pnpm install --prod --frozen-lockfile --filter @ats/api...
 
 EXPOSE 3000
-CMD ["node", "apps/api/dist/index.js"]
+CMD ["node", "apps/api/dist/start.js"]
