@@ -128,4 +128,6 @@ Review [`apps/api/.env.example`](../../apps/api/.env.example) for the environmen
 
 ## Deployment notes
 
+For Render web services, set the health check path to `/health`.
+
 The checked-in Compose setup is for local development: it uses placeholder integration values and runs `prisma db push`. Do not deploy it as-is or use `db push` against a production database. A production deployment needs production secrets, HTTPS-aware cookie/CORS settings, managed or secured PostgreSQL and Redis, an appropriate trusted-proxy configuration, and a reviewed Prisma migration strategy.
