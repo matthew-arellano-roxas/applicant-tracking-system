@@ -1,2 +1,54 @@
-node_modules
-.vscode
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Production builds (React / Vite / Express)
+build/
+dist/
+out/
+
+# Environment variables & secrets
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# Testing & coverage
+coverage/
+.nyc_output/
+
+# Cache & temporary files
+.eslintcache
+.stylelintcache
+.cache/
+.parcel-cache/
+*.tsbuildinfo
+
+# Editors & IDEs
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Operating System files
+.DS_Store
+.DS_Store?
+._*
+Thumbs.db
+ehthumbs.db
+Desktop.ini

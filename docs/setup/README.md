@@ -86,7 +86,7 @@ The seeded demo usernames are:
 
 All seed accounts use the same configured password. The seed also creates 30 fictional applicant accounts (`candidate01@example.com` through `candidate30@example.com`) and associated hiring requests, job posts, applications, scores, interviews, and evaluations. It is repeatable and refuses to run when `NODE_ENV=production`. It creates application records, but does not upload CV files; the applicant demo account must upload a PDF before submitting another application.
 
-Compose does not load `apps/api/.env`. Replace the `SEED_PASSWORD` placeholder under the API service in [`docker-compose.yaml`](../../docker-compose.yaml), then run:
+Compose does not load `apps/api/.env`. It reads the project-root `.env` for `${...}` substitutions in [`docker-compose.yaml`](../../docker-compose.yaml). Set `SEED_PASSWORD` there, then run:
 
 ```sh
 docker compose exec api pnpm --filter @ats/api exec prisma db seed --config prisma7.config.ts
@@ -96,7 +96,11 @@ Do not use demo accounts or the demo password in production.
 
 ## Run with Docker Compose
 
-The Compose file includes the API, worker, web app, PostgreSQL, and Redis services. Its API and worker environment variables are written directly in [`docker-compose.yaml`](../../docker-compose.yaml) as placeholders. Replace the placeholder integration credentials there before starting the stack. Compose does **not** load `apps/api/.env`.
+The Compose file includes the API, worker, web app, PostgreSQL, and Redis services. Compose automatically reads a project-root `.env` file and substitutes its values into `docker-compose.yaml`; it does not automatically pass every variable to containers. The Compose file passes the API credentials and service settings it uses. It deliberately uses `COMPOSE_DATABASE_URL` and `COMPOSE_REDIS_*_URL` for container connections, since `localhost` in the regular `DATABASE_URL` or `REDIS_*_URL` values refers to the current container, not the database or Redis service.
+
+Copy [`.env.example`](../../.env.example) to `.env` if you do not already have a root `.env`, or merge the example variables into your existing file without overwriting its credentials. The example contains local-development defaults only. You can change the published host ports with `WEB_HOST_PORT`, `API_HOST_PORT`, `POSTGRES_HOST_PORT`, `REDIS_CACHE_HOST_PORT`, and `REDIS_QUEUE_HOST_PORT`; `API_UPSTREAM` controls the web container's Nginx proxy target. Set `COMPOSE_DATABASE_URL` or `COMPOSE_REDIS_CACHE_URL` / `COMPOSE_REDIS_QUEUE_URL` only when you need to override the Compose-internal defaults. If you change PostgreSQL credentials, keep the database URL in sync; URL-encode special characters in the URL or set `COMPOSE_DATABASE_URL` explicitly.
+
+PostgreSQL's `POSTGRES_DB`, `POSTGRES_USER`, and `POSTGRES_PASSWORD` initialize a new data volume; changing them later does not change credentials inside an existing volume.
 
 Start the development stack from the repository root:
 
@@ -104,7 +108,7 @@ Start the development stack from the repository root:
 docker compose up --build
 ```
 
-Open the web app at `http://localhost:5173` and the API at `http://localhost:3000`. The API service pushes the Prisma schema to the local Compose database at startup. PostgreSQL and Redis data are stored in named Docker volumes. Stop the services with:
+Open the web app at `http://localhost:5173` and the API at `http://localhost:3000` by default (or use the configured host ports). The web container proxies `/api` to `API_UPSTREAM`, which defaults to `http://api:3000` on the Compose network. The API service pushes the Prisma schema to the local Compose database at startup. PostgreSQL and Redis data are stored in named Docker volumes. Stop the services with:
 
 ```sh
 docker compose down
