@@ -1,8 +1,7 @@
 model EmployeeDocumentStatus {
   id            String   @id @default(cuid())
   employeeId    String   @unique
-  employee      Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
-  validId       String // pending, complete
+  validId       String
   tin           String
   sss           String
   philhealth    String
@@ -11,4 +10,5 @@ model EmployeeDocumentStatus {
   psa           String
   birForm       String?
   nbiClearance  String
+  employee      Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
 }

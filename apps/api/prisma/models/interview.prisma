@@ -1,22 +1,22 @@
 model Interview {
   id              String                @id @default(cuid())
   applicantId     String
-  applicant       Applicant             @relation(fields: [applicantId], references: [id], onDelete: Cascade)
   interviewerId   String?
-  interviewer     User?                 @relation(fields: [interviewerId], references: [id], onDelete: SetNull)
-  stage           String                @db.VarChar(30) // HR_SCREENING, DEPARTMENT, DEMO_TEACHING, FINAL
+  stage           String                @db.VarChar(30)
   date            DateTime              @db.Timestamptz(3)
   durationMinutes Int                   @default(60)
   timeZone        String                @default("Asia/Manila") @db.VarChar(64)
-  type            String                @db.VarChar(20) // ONSITE, ONLINE, PHONE
+  type            String                @db.VarChar(20)
   status          String                @default("SCHEDULED") @db.VarChar(20)
   location        String?               @db.VarChar(255)
   meetingUrl      String?               @db.VarChar(2048)
-  instructions    String? // shown in the invitation email
-  notes           String? // private notes for HR/interviewers
-  evaluations     InterviewEvaluation[]
+  instructions    String?
+  notes           String?
   createdAt       DateTime              @default(now()) @db.Timestamptz(3)
   updatedAt       DateTime              @updatedAt @db.Timestamptz(3)
+  applicant       Applicant             @relation(fields: [applicantId], references: [id], onDelete: Cascade)
+  interviewer     User?                 @relation(fields: [interviewerId], references: [id])
+  evaluations     InterviewEvaluation[]
 
   @@index([applicantId, date])
   @@index([status, date])
@@ -26,16 +26,16 @@ model Interview {
 model InterviewEvaluation {
   id             String    @id @default(cuid())
   interviewId    String
-  interview      Interview @relation(fields: [interviewId], references: [id], onDelete: Cascade)
   evaluatorId    String
-  evaluator      User      @relation(fields: [evaluatorId], references: [id], onDelete: Cascade)
-  ratings        Json // rubric criterion names mapped to integer ratings from 1 to 5
-  recommendation String    @db.VarChar(20) // STRONG_YES, YES, HOLD, NO
+  ratings        Json
+  recommendation String    @db.VarChar(20)
   strengths      String?
   concerns       String?
   comments       String?
   createdAt      DateTime  @default(now()) @db.Timestamptz(3)
   updatedAt      DateTime  @updatedAt @db.Timestamptz(3)
+  evaluator      User      @relation(fields: [evaluatorId], references: [id], onDelete: Cascade)
+  interview      Interview @relation(fields: [interviewId], references: [id], onDelete: Cascade)
 
   @@unique([interviewId, evaluatorId])
   @@index([evaluatorId])

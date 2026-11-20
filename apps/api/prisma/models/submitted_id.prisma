@@ -1,10 +1,10 @@
 model SubmittedId {
   id          String         @id @default(cuid())
   employeeId  String
-  employee    Employee       @relation(fields: [employeeId], references: [id], onDelete: Cascade)
   idType      AcceptedIdType
   notes       String?
   presentedAt DateTime       @default(now()) @db.Timestamptz(3)
+  employee    Employee       @relation(fields: [employeeId], references: [id], onDelete: Cascade)
 
   @@unique([employeeId, idType])
   @@index([employeeId])
