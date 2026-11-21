@@ -25,6 +25,6 @@ export const env = {
   SUPABASE_SECRET_KEY: process.env.SUPABASE_SECRET_KEY,
   // Json Web Token
   JWT_SECRET: process.env.JWT_SECRET,
-  // Demo seed
-  SEED_PASSWORD: process.env.SEED_PASSWORD,
+  JWT_ACCESS_SECRET: process.env.JWT_ACCESS_SECRET,
+  JWT_REFRESH_SECRET: process.env.JWT_REFRESH_SECRET,
 };
