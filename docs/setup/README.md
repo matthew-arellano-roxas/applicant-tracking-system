@@ -122,6 +122,16 @@ Compose selects the Dockerfile's `development` target. The Dockerfile's default 
 
 Review [`apps/api/.env.example`](../../apps/api/.env.example) for the environment variable names used by the API, including database, Redis, SMTP, Groq, Supabase, JWT, and frontend origin settings. Use secure, unique values for secrets outside local development.
 
+| Variable | Local value | Purpose |
+| --- | --- | --- |
+| `NODE_ENV` | `development` | Controls secure cookies, seed restrictions, and logging format. Use `production` only for deployed environments. |
+| `LOG_LEVEL` | `debug` | Pino log threshold. Common production value: `info`. |
+| `TRUST_PROXY_HOPS` | `1` | Number of trusted reverse proxies. Use `0` without a proxy and an exact proxy count in production. |
+| `HTTP_CACHE_TTL_SECONDS` | `300` | HTTP response-cache TTL in seconds. |
+| `REDIS_HOST` | `127.0.0.1` or `redis-cache` | Redis fallback host when a Redis URL is not configured. |
+| `REDIS_PORT` | `6379` | Redis fallback port. |
+| `SEED_PASSWORD` | Local demo password | Password used by Prisma demo seeding. The seed refuses to run in production. |
+
 - Credentialed CORS requests are restricted to the origin in `FRONTEND_URL`.
 - All API routes use a Redis-backed baseline rate limit of 1,000 requests per IP per 15 minutes. Authentication routes have stricter limits; OTP attempt limits also apply.
 - If deployed behind a reverse proxy, configure `TRUST_PROXY_HOPS` to the exact number of trusted proxies. Do not trust forwarded IP headers from untrusted clients.
