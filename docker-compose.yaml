@@ -52,21 +52,23 @@ services:
       target: development
     restart: unless-stopped
     environment:
-      NODE_ENV: development
+      NODE_ENV: ${NODE_ENV:-development}
       PORT: 3000
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost:5173}
+      LOG_LEVEL: ${LOG_LEVEL:-debug}
+      TRUST_PROXY_HOPS: ${TRUST_PROXY_HOPS:-1}
+      HTTP_CACHE_TTL_SECONDS: ${HTTP_CACHE_TTL_SECONDS:-300}
       DATABASE_URL: "${COMPOSE_DATABASE_URL:-postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-applicant_tracking_system}?schema=public}"
       REDIS_CACHE_URL: ${COMPOSE_REDIS_CACHE_URL:-redis://redis-cache:6379}
       REDIS_QUEUE_URL: ${COMPOSE_REDIS_QUEUE_URL:-redis://redis-queue:6379}
+      REDIS_HOST: ${REDIS_HOST:-redis-cache}
+      REDIS_PORT: ${REDIS_PORT:-6379}
       SMTP_USER: ${SMTP_USER:-your-email@example.com}
       SMTP_PASS: ${SMTP_PASS:-replace-with-smtp-password}
       GROQ_API_KEY: ${GROQ_API_KEY:-replace-with-groq-api-key}
       SUPABASE_PROJECT_URL: ${SUPABASE_PROJECT_URL:-https://your-project.supabase.co}
-      SUPABASE_PUBLISHABLE_KEY: ${SUPABASE_PUBLISHABLE_KEY:-replace-with-supabase-publishable-key}
       SUPABASE_SECRET_KEY: ${SUPABASE_SECRET_KEY:-replace-with-supabase-secret-key}
       JWT_SECRET: ${JWT_SECRET:-replace-with-a-long-random-secret}
-      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-replace-with-a-different-long-random-secret}
-      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-replace-with-another-long-random-secret}
       SEED_PASSWORD: ${SEED_PASSWORD:-choose-your-own-demo-password}
     command:
       - sh
@@ -100,21 +102,23 @@ services:
       target: development
     restart: unless-stopped
     environment:
-      NODE_ENV: development
+      NODE_ENV: ${NODE_ENV:-development}
       PORT: 3000
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost:5173}
+      LOG_LEVEL: ${LOG_LEVEL:-debug}
+      TRUST_PROXY_HOPS: ${TRUST_PROXY_HOPS:-1}
+      HTTP_CACHE_TTL_SECONDS: ${HTTP_CACHE_TTL_SECONDS:-300}
       DATABASE_URL: "${COMPOSE_DATABASE_URL:-postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-applicant_tracking_system}?schema=public}"
       REDIS_CACHE_URL: ${COMPOSE_REDIS_CACHE_URL:-redis://redis-cache:6379}
       REDIS_QUEUE_URL: ${COMPOSE_REDIS_QUEUE_URL:-redis://redis-queue:6379}
+      REDIS_HOST: ${REDIS_HOST:-redis-cache}
+      REDIS_PORT: ${REDIS_PORT:-6379}
       SMTP_USER: ${SMTP_USER:-your-email@example.com}
       SMTP_PASS: ${SMTP_PASS:-replace-with-smtp-password}
       GROQ_API_KEY: ${GROQ_API_KEY:-replace-with-groq-api-key}
       SUPABASE_PROJECT_URL: ${SUPABASE_PROJECT_URL:-https://your-project.supabase.co}
-      SUPABASE_PUBLISHABLE_KEY: ${SUPABASE_PUBLISHABLE_KEY:-replace-with-supabase-publishable-key}
       SUPABASE_SECRET_KEY: ${SUPABASE_SECRET_KEY:-replace-with-supabase-secret-key}
       JWT_SECRET: ${JWT_SECRET:-replace-with-a-long-random-secret}
-      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-replace-with-a-different-long-random-secret}
-      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-replace-with-another-long-random-secret}
     command: ["pnpm", "--filter", "@ats/api", "dev:worker"]
     depends_on:
       api:
